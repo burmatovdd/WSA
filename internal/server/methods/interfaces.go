@@ -1,15 +1,12 @@
 package methods
 
-import (
-	"WAF_Analytics/configs/server"
-	"WAF_Analytics/internal/server/postgresql"
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
-//GetResourcesInfo функция получения информации о всех ресурсах
-func (service *Service) GetResourcesInfo(c *gin.Context) {
-	method := postgresql.Service{}
-	config := server.Service{}
+type Service struct {
+	service *Method
+}
 
-	method.GetAllStat(config.LoadConfig("configs/server"))
+type Method interface {
+	GetStatistic(c *gin.Context)
+	GetResourcesInfo(c *gin.Context)
 }

@@ -23,6 +23,7 @@ func (service *Service) HandleRequest() {
 		AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers, Authorization"},
 	}))
+	router.GET("/api/getStatistic", method.GetStatistic)
 	router.GET("/api/getResourcesInfo", method.GetResourcesInfo)
 	err := router.Run(":8080")
 	if err != nil {

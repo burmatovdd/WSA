@@ -1,11 +1,22 @@
 package methods
 
-import "github.com/gin-gonic/gin"
+import (
+	"WAF_Analytics/configs/server"
+	"WAF_Analytics/internal/server/postgresql"
+	"github.com/gin-gonic/gin"
+)
 
-type Service struct {
-	service *Method
+//GetStatistic функция получения информации о всех ресурсах
+func (service *Service) GetStatistic(c *gin.Context) {
+	method := postgresql.Service{}
+	config := server.Service{}
+
+	method.GetAllStat(config.LoadConfig("configs/server"))
 }
 
-type Method interface {
-	GetResourcesInfo(c *gin.Context)
+func (service *Service) GetResourcesInfo(c *gin.Context) {
+	method := postgresql.Service{}
+	config := server.Service{}
+
+	method.GetResourcesStat(config.LoadConfig("configs/server"))
 }
