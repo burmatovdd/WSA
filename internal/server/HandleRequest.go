@@ -25,6 +25,8 @@ func (service *Service) HandleRequest() {
 	}))
 	router.GET("/api/getStatistic", method.GetStatistic)
 	router.GET("/api/getResourcesInfo", method.GetResourcesInfo)
+	router.GET("/api/addNewEmployee", method.AddNewEmployee)
+	router.GET("/api/addNewOwner", method.AddNewOwner)
 	err := router.Run(":8080")
 	if err != nil {
 		fmt.Println("err: ", err)

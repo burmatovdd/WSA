@@ -9,4 +9,6 @@ type Service struct {
 type Method interface {
 	GetStatistic(c *gin.Context)
 	GetResourcesInfo(c *gin.Context)
+	AddNewEmployee(c *gin.Context)
+	AddNewOwner(c *gin.Context)
 }

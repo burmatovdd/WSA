@@ -7,63 +7,7 @@ import (
 	"fmt"
 	_ "github.com/lib/pq"
 	"log"
-	"time"
 )
-
-type stat struct {
-	ID                int
-	date              time.Time
-	allServers        int
-	errorServers      int
-	workServers       int
-	withWaf           int
-	possible          float64
-	wafProcPossible   float64
-	wafProc           float64
-	withKas           int
-	wafAndKas         int
-	wafAndKasProc     float64
-	allCertificate    int
-	okDateCertificate int
-}
-
-type resource struct {
-	ID         int
-	URL        string
-	IP         string
-	Err        string
-	Waf        string
-	IDUser     sql.NullString
-	IDOwner    sql.NullString
-	CommonName string
-	Issuer     string
-	EndDate    string
-}
-
-type request struct {
-	Resource []requestBody `json:"resources"`
-}
-
-type requestBody struct {
-	Recourse resourceReq `json:"recourse"`
-}
-
-type resourceReq struct {
-	URL     string `json:"URL"`
-	Status  bool   `json:"Status"`
-	WAF     bool   `json:"WAF"`
-	SSL     bool   `json:"SSL"`
-	DateEnd string `json:"DateEnd"`
-}
-
-type Service struct {
-	service *Postgresql
-}
-
-type Postgresql interface {
-	GetAllStat()
-	GetResourcesStat(config server.Config, err error)
-}
 
 //connection функция коннекта к базе данных
 func connection(conString string) (*sql.DB, error) {
@@ -205,3 +149,57 @@ func (service *Service) GetResourcesStat(config server.Config, err error) {
 
 	fmt.Println(string(jsonParse(arr)))
 }
+
+//AddNewEmployee функция добавления нового пользователя
+func (service *Service) AddNewEmployee(config server.Config, data Employee) {
+	db, err := connection(config.POSTGRESQL_CONNSTRING)
+	if err != nil {
+		fmt.Println("err: ", err.Error())
+	}
+	defer db.Close()
+
+	_, err = db.Exec(
+		"INSERT INTO users (emailus, passwordus, accessus) VALUES ($1,$2,$3)",
+		data.Email, data.Password, data.Access)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+//AddNewOwner функция добавления организации
+func (service *Service) AddNewOwner(config server.Config, data Owner) {
+	db, err := connection(config.POSTGRESQL_CONNSTRING)
+	if err != nil {
+		fmt.Println("err: ", err.Error())
+	}
+	defer db.Close()
+
+	_, err = db.Exec(
+		"INSERT INTO owners (nameown, shortname) VALUES ($1,$2)",
+		data.FullName, data.ShortName)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+//func (service *Service) AddNewResource(config server.Config, err error) {
+//
+//	res := struct {
+//		Url      string
+//		Ip       string
+//		Employee string
+//		Email    string
+//		Owner    string
+//	}{Url: "test.ru", Ip: "192.168.0.1", Employee: "John Doe", Email: "johndoe@mail.ru", Owner: "Test"}
+//
+//	db, err := connection(config.POSTGRESQL_CONNSTRING)
+//	if err != nil {
+//		fmt.Println("err: ", err.Error())
+//	}
+//	defer db.Close()
+//
+//	_, err = db.Exec("INSERT INTO usersbonds (user_id, bond_id, count) VALUES ($1,$2,$3)", userID, bondId, count)
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//}
