@@ -1,4 +1,4 @@
-package postgresql
+package resource
 
 import (
 	"database/sql"
@@ -22,7 +22,7 @@ type stat struct {
 	okDateCertificate int
 }
 
-type resource struct {
+type resourceInfo struct {
 	ID         int
 	URL        string
 	IP         string
@@ -40,7 +40,7 @@ type request struct {
 }
 
 type requestBody struct {
-	Recourse resourceReq `json:"recourse"`
+	Resource resourceReq `json:"resource"`
 }
 
 type resourceReq struct {
@@ -51,14 +51,22 @@ type resourceReq struct {
 	DateEnd string `json:"DateEnd"`
 }
 
-type Employee struct {
+type employee struct {
 	Initials string `json:"initials"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Access   bool   `json:"access"`
 }
 
-type Owner struct {
+type owner struct {
 	FullName  string `json:"fullName"`
 	ShortName string `json:"shortName"`
+}
+
+type resource struct {
+	Url      string `json:"url"`
+	Ip       string `json:"ip"`
+	Employee string `json:"employee"`
+	Email    string `json:"email"`
+	Owner    string `json:"owner"`
 }

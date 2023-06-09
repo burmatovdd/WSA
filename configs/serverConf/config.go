@@ -1,24 +1,18 @@
-package server
+package serverConf
 
 import (
 	"fmt"
 	"github.com/spf13/viper"
 )
 
-type Service struct {
-	service *WAFConfig
-}
-
-type WAFConfig interface {
-	LoadConfig(path string) (config Config, err error)
-}
-
 type Config struct {
 	POSTGRESQL_CONNSTRING string `mapstructure:"POSTGRESQL_CONNSTRING"`
 }
 
+var DefaultConfig Config
+
 //LoadConfig функция обработки конфига
-func (service *Service) LoadConfig(path string) (config Config, err error) {
+func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()
@@ -29,5 +23,6 @@ func (service *Service) LoadConfig(path string) (config Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
+	DefaultConfig = config
 	return
 }
