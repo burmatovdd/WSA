@@ -133,6 +133,10 @@ func (service *PgService) AddOwner(c *gin.Context) {
 
 	args := []any{own.FullName, own.ShortName}
 
+	if checkDataInDB("select * from owners where nameown = '" + own.FullName + "'") {
+		fmt.Println("already exist")
+		return
+	}
 	res := helpers.Exec("INSERT INTO owners (nameown, shortname) VALUES ($1,$2)", args, serverConf.DefaultConfig)
 
 	if !res {
@@ -148,6 +152,12 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 	if err != nil {
 		fmt.Println("err: ", err)
 	}
+
+	if checkDataInDB("select * from usdata where emailus = '" + emp.Email + "'") {
+		fmt.Println("already exist")
+		return
+	}
+
 	args := []any{emp.Email, emp.Password, emp.Access}
 
 	res := helpers.Exec("INSERT INTO users (emailus, passwordus, accessus) VALUES ($1,$2,$3)", args, serverConf.DefaultConfig)
@@ -175,6 +185,11 @@ func (service *PgService) AddResource(c *gin.Context) {
 
 	args := []any{resource.Url, resource.Ip}
 
+	if checkDataInDB("select * from resource where nameurl = '" + resource.Url + "'") {
+		fmt.Println("already exist")
+		return
+	}
+
 	res := helpers.Exec("INSERT INTO url (nameurl, ip) VALUES ($1,$2)", args, serverConf.DefaultConfig)
 	if !res {
 		fmt.Println("error: ", res)
@@ -188,29 +203,11 @@ func (service *PgService) AddResource(c *gin.Context) {
 	fmt.Println("res: ", res)
 }
 
-//func findEmployee(email string) bool {
-//	rows, err := helpers.Select("select * from usdata where", serverConf.DefaultConfig)
-//	defer rows.Close()
-//	if err != nil {
-//		log.Fatalln("error: ", err)
-//		return false
-//	}
-//	defer rows.Close()
-//	return true
-//}
-//
-//func findOwner(config serverConf.Config, owner string) bool {
-//	db, err := connection(config.POSTGRESQL_CONNSTRING)
-//	if err != nil {
-//		fmt.Println("err: ", err.Error())
-//	}
-//	defer db.Close()
-//
-//	rows, err := db.Query("select * from owners where shortname = $1", owner)
-//	if err != nil {
-//		log.Fatalln("error: ", err)
-//		return false
-//	}
-//	defer rows.Close()
-//	return true
-//}
+func checkDataInDB(query string) bool {
+	rows, err := helpers.Select(query, serverConf.DefaultConfig)
+	defer rows.Close()
+	if err != nil {
+		return false
+	}
+	return true
+}
