@@ -26,10 +26,10 @@ type resourceInfo struct {
 	ID         int
 	URL        string
 	IP         string
-	Err        string
-	Waf        string
-	IDUser     sql.NullString
-	IDOwner    sql.NullString
+	Err        sql.NullString
+	Waf        sql.NullString
+	IDUser     sql.NullInt64
+	IDOwner    sql.NullInt64
 	CommonName string
 	Issuer     string
 	EndDate    string
@@ -49,6 +49,7 @@ type resourceReq struct {
 	WAF     bool   `json:"WAF"`
 	SSL     bool   `json:"SSL"`
 	DateEnd string `json:"DateEnd"`
+	Email   string `json:"Email"`
 }
 
 type employee struct {
@@ -69,4 +70,33 @@ type resource struct {
 	Employee string `json:"employee"`
 	Email    string `json:"email"`
 	Owner    string `json:"owner"`
+}
+
+type user struct {
+	ID    int    `json:"ID"`
+	Email string `json:"email"`
+	FIO   string `json:"FIO"`
+}
+
+type own struct {
+	ID        int    `json:"ID"`
+	NameOwn   string `json:"email"`
+	ShortName string `json:"shortName"`
+}
+
+type ownName struct {
+	Name string `json:"name"`
+}
+
+type ResByOwnReq struct {
+	OwnerName string `json:"ownerName"`
+	Resourses []resourceByOwner
+}
+
+type resourceByOwner struct {
+	Url      string `json:"url"`
+	Error    bool   `json:"error"`
+	Waf      bool   `json:"waf"`
+	DateCert string `json:"dateCert"`
+	Email    string `json:"email"`
 }

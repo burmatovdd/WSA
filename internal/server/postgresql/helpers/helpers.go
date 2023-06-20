@@ -26,7 +26,7 @@ func Select(query string, conString serverConf.Config) (*sql.Rows, error) {
 
 	rows, err := db.Query(query)
 	if err != nil {
-		log.Fatalln("error ", err)
+		log.Fatalln("error in select ", err)
 	}
 	return rows, err
 }

@@ -28,6 +28,7 @@ func (service *Service) CreateServer() {
 	router.GET("/api/add-employee", method.AddEmployee)
 	router.GET("/api/add-owner", method.AddOwner)
 	router.GET("/api/add-resource", method.AddResource)
+	router.GET("/api/get-resource-by-owner", method.FindResourceByOwner)
 	err := router.Run(":8080")
 	if err != nil {
 		fmt.Println("err: ", err)

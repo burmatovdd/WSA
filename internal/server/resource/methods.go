@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"log"
+	"strconv"
 )
 
 func jsonParse(variable any) []byte {
@@ -25,6 +27,15 @@ func check(variable string) bool {
 	} else {
 		return true
 	}
+}
+
+func checkDataInDB(query string) bool {
+	rows, err := helpers.Select(query, serverConf.DefaultConfig)
+	defer rows.Close()
+	if err != nil {
+		return true
+	}
+	return false
 }
 
 //GetStat функция вывода общей статистики
@@ -100,8 +111,8 @@ func (service *PgService) GetResStat(c *gin.Context) {
 		resourceStr = requestBody{
 			resourceReq{
 				URL:     p.URL,
-				Status:  check(p.Err),
-				WAF:     check(p.Waf),
+				Status:  check(p.Err.String),
+				WAF:     check(p.Waf.String),
 				SSL:     check(p.Issuer),
 				DateEnd: p.EndDate,
 			},
@@ -183,19 +194,23 @@ func (service *PgService) AddResource(c *gin.Context) {
 		fmt.Println("err: ", err)
 	}
 
-	args := []any{resource.Url, resource.Ip}
+	userId := getUserId("select * from usdata where emailus = '" + resource.Email + "'")
+	ownId := getOwnerId("select * from owners where shortname = '" + resource.Owner + "'")
+
+	args := []any{resource.Url, resource.Ip, userId, ownId}
 
 	if checkDataInDB("select * from resource where nameurl = '" + resource.Url + "'") {
 		fmt.Println("already exist")
 		return
 	}
 
-	res := helpers.Exec("INSERT INTO url (nameurl, ip) VALUES ($1,$2)", args, serverConf.DefaultConfig)
+	res := helpers.Exec("INSERT INTO url (nameurl, ip,idusd,idowner) VALUES ($1,$2,$3,$4)", args, serverConf.DefaultConfig)
 	if !res {
 		fmt.Println("error: ", res)
 	}
 	fmt.Println("res: ", res)
 
+	args = []any{resource.Url, resource.Ip}
 	res = helpers.Exec("INSERT INTO resource (nameurl, ipfirst) VALUES ($1,$2)", args, serverConf.DefaultConfig)
 	if !res {
 		fmt.Println("error: ", res)
@@ -203,11 +218,128 @@ func (service *PgService) AddResource(c *gin.Context) {
 	fmt.Println("res: ", res)
 }
 
-func checkDataInDB(query string) bool {
+func getOwnerId(query string) int {
+	id := 0
 	rows, err := helpers.Select(query, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
-		return false
+		log.Fatalln("error: ", err)
+		return 0
 	}
-	return true
+	for rows.Next() {
+		p := own{}
+		err = rows.Scan(
+			&p.ID,
+			&p.NameOwn,
+			&p.ShortName,
+		)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		id = p.ID
+	}
+	return id
+}
+
+func getUserId(query string) int {
+	id := 0
+	rows, err := helpers.Select(query, serverConf.DefaultConfig)
+	defer rows.Close()
+	if err != nil {
+		log.Fatalln("error: ", err)
+		return 0
+	}
+
+	for rows.Next() {
+		p := user{}
+		err = rows.Scan(
+			&p.ID,
+			&p.Email,
+			&p.FIO,
+		)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		id = p.ID
+	}
+	return id
+}
+
+func (service *PgService) FindResourceByOwner(c *gin.Context) {
+	var name ownName
+	err := c.BindJSON(&name)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
+	ownId := getOwnerId("select * from owners where shortname = '" + name.Name + "'")
+	fmt.Println("ownId: ", ownId)
+
+	res := resourceByOwner{}
+	var resArr []resourceByOwner
+
+	fmt.Println("select * from url where idowner = " + strconv.Itoa(ownId) + "'")
+	rows, err := helpers.Select("select * from url where idowner = '"+strconv.Itoa(ownId)+"'", serverConf.DefaultConfig)
+	defer rows.Close()
+
+	for rows.Next() {
+		p := resourceInfo{}
+		err = rows.Scan(
+			&p.ID,
+			&p.URL,
+			&p.IP,
+			&p.Err,
+			&p.Waf,
+			&p.IDUser,
+			&p.IDOwner,
+			&p.CommonName,
+			&p.Issuer,
+			&p.EndDate)
+
+		if err != nil {
+			fmt.Println("error in scan; ", err)
+			continue
+		}
+
+		res = resourceByOwner{
+			Url:      p.URL,
+			Error:    check(p.Err.String),
+			Waf:      check(p.Waf.String),
+			DateCert: p.EndDate,
+			Email:    getUserEmail("select * from usdata where idusd = '" + strconv.FormatInt(p.IDUser.Int64, 10) + "'"),
+		}
+
+		resArr = append(resArr, res)
+	}
+	req := ResByOwnReq{
+		name.Name,
+		resArr,
+	}
+
+	fmt.Println("req: ", req)
+}
+
+func getUserEmail(query string) string {
+	email := ""
+	rows, err := helpers.Select(query, serverConf.DefaultConfig)
+	defer rows.Close()
+	if err != nil {
+		log.Fatalln("error: ", err)
+		return ""
+	}
+	for rows.Next() {
+		p := user{}
+		err = rows.Scan(
+			&p.ID,
+			&p.Email,
+			&p.FIO,
+		)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		email = p.Email
+	}
+	return email
 }
