@@ -48,6 +48,7 @@ func (service *PgService) GetStat(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 		})
+		return
 	}
 
 	req := reqStat{}
@@ -101,6 +102,7 @@ func (service *PgService) GetResStat(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 		})
+		return
 	}
 
 	resourceStr := requestBody{}
@@ -157,6 +159,7 @@ func (service *PgService) AddOwner(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 		})
+		return
 	}
 
 	args := []any{own.FullName, own.ShortName}
@@ -167,6 +170,7 @@ func (service *PgService) AddOwner(c *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"body": "already exist",
 		})
+		return
 	}
 	res := helpers.Exec("INSERT INTO owners (nameown, shortname) VALUES ($1,$2)", args, serverConf.DefaultConfig)
 
@@ -175,6 +179,7 @@ func (service *PgService) AddOwner(c *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"body": res,
 		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -192,6 +197,7 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 		})
+		return
 	}
 
 	if checkDataInDB("select * from usdata where emailus = '" + emp.Email + "'") {
@@ -200,6 +206,7 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"body": "already exist",
 		})
+		return
 	}
 
 	args := []any{emp.Email, emp.Password, emp.Access}
@@ -210,6 +217,7 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"body": res,
 		})
+		return
 	}
 
 	args = []any{emp.Email, emp.Initials}
@@ -220,6 +228,7 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"body": res,
 		})
+		return
 	}
 	c.JSON(http.StatusBadRequest, gin.H{
 		"code": http.StatusBadRequest,
@@ -235,6 +244,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 		})
+		return
 	}
 
 	userId := getUserId("select * from usdata where emailus = '" + resource.Email + "'")
@@ -247,6 +257,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"body": "already exist",
 		})
+		return
 	}
 
 	res := helpers.Exec("INSERT INTO url (nameurl, ip,idusd,idowner) VALUES ($1,$2,$3,$4)", args, serverConf.DefaultConfig)
@@ -255,6 +266,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"body": res,
 		})
+		return
 	}
 
 	args = []any{resource.Url, resource.Ip}
@@ -264,6 +276,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"body": res,
 		})
+		return
 	}
 	c.JSON(http.StatusBadRequest, gin.H{
 		"code": http.StatusBadRequest,
@@ -351,20 +364,31 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 		})
+		return
 	}
+
+	ch := checkDataInDB("select * from owners where shortname = '" + name.Name + "'")
+
+	if !ch {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": "no data in data base",
+		})
+		return
+	}
+
 	ownId := getOwnerId("select * from owners where shortname = '" + name.Name + "'")
-	fmt.Println("ownId: ", ownId)
 
 	res := resourceByOwner{}
 	var resArr []resourceByOwner
 
-	fmt.Println("select * from url where idowner = " + strconv.Itoa(ownId) + "'")
 	rows, err := helpers.Select("select * from url where idowner = '"+strconv.Itoa(ownId)+"'", serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 		})
+		return
 	}
 
 	for rows.Next() {
@@ -382,7 +406,7 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 			&p.EndDate)
 
 		if err != nil {
-			fmt.Println("error in scan; ", err)
+			fmt.Println("error: ", err)
 			continue
 		}
 
