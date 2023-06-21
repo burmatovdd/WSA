@@ -4,7 +4,6 @@ import (
 	"WAF_Analytics/configs/serverConf"
 	"database/sql"
 	"fmt"
-	"log"
 )
 
 type cs struct {
@@ -20,13 +19,13 @@ func getCs(conString serverConf.Config) cs {
 func Select(query string, conString serverConf.Config) (*sql.Rows, error) {
 	db, err := sql.Open("postgres", getCs(conString).cs)
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
 	defer db.Close()
 
 	rows, err := db.Query(query)
 	if err != nil {
-		log.Fatalln("error in select ", err)
+		return nil, err
 	}
 	return rows, err
 }
@@ -35,12 +34,13 @@ func Exec(query string, arg []any, conString serverConf.Config) bool {
 	db, err := sql.Open("postgres", getCs(conString).cs)
 	if err != nil {
 		fmt.Println(err.Error())
+		return false
 	}
 	defer db.Close()
 
 	_, err = db.Exec(query, arg...)
 	if err != nil {
-		log.Fatalln("error ", err)
+		fmt.Println(err.Error())
 		return false
 	}
 	return true

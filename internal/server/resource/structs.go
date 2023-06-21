@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type stat struct {
+type resStat struct {
 	ID                int
 	date              time.Time
 	allServers        int
@@ -22,6 +22,15 @@ type stat struct {
 	okDateCertificate int
 }
 
+type reqStat struct {
+	AllServers         int `json:"allServers"`
+	ErrorServers       int `json:"errorServers"`
+	WorkingServers     int `json:"workingServers"`
+	WithWaf            int `json:"withWaf"`
+	AllCertificates    int `json:"allCertificates"`
+	OkDateCertificates int `json:"okDateCertificates"`
+}
+
 type resourceInfo struct {
 	ID         int
 	URL        string
@@ -31,8 +40,8 @@ type resourceInfo struct {
 	IDUser     sql.NullInt64
 	IDOwner    sql.NullInt64
 	CommonName string
-	Issuer     string
-	EndDate    string
+	Issuer     sql.NullString
+	EndDate    sql.NullString
 }
 
 type request struct {

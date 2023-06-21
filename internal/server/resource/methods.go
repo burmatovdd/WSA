@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"log"
+	"net/http"
 	"strconv"
 )
 
@@ -38,15 +39,22 @@ func checkDataInDB(query string) bool {
 	return false
 }
 
+//GetStat todo: map убрать, сделать структуру
 //GetStat функция вывода общей статистики
 func (service *PgService) GetStat(c *gin.Context) {
-	rows, _ := helpers.Select("select * from stat", serverConf.DefaultConfig)
+	rows, err := helpers.Select("select * from stat", serverConf.DefaultConfig)
 	defer rows.Close()
 
-	statMap := make(map[string]int)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+	}
+
+	req := reqStat{}
 
 	for rows.Next() {
-		p := stat{}
+		p := resStat{}
 		err := rows.Scan(
 			&p.ID,
 			&p.date,
@@ -68,23 +76,42 @@ func (service *PgService) GetStat(c *gin.Context) {
 			continue
 		}
 
-		statMap = map[string]int{
-			"allServers":        p.allServers,
-			"errorServers":      p.errorServers,
-			"workServers":       p.workServers,
-			"withWaf":           p.withWaf,
-			"allCertificate":    p.allCertificate,
-			"okDateCertificate": p.okDateCertificate,
+		req = reqStat{
+			p.allServers,
+			p.errorServers,
+			p.workServers,
+			p.withWaf,
+			p.allCertificate,
+			p.okDateCertificate,
 		}
+
+		//statMap = map[string]int{
+		//	"allServers":        p.allServers,
+		//	"errorServers":      p.errorServers,
+		//	"workServers":       p.workServers,
+		//	"withWaf":           p.withWaf,
+		//	"allCertificate":    p.allCertificate,
+		//	"okDateCertificate": p.okDateCertificate,
+		//}
 	}
 
-	fmt.Println(string(jsonParse(statMap)))
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": string(jsonParse(req)),
+	})
 }
 
 //GetResStat функция вывода данных по каждому ресурсу
 func (service *PgService) GetResStat(c *gin.Context) {
-	rows, _ := helpers.Select("select * from url", serverConf.DefaultConfig)
+	rows, err := helpers.Select("select * from url", serverConf.DefaultConfig)
 	defer rows.Close()
+
+	if err != nil {
+		fmt.Println("err")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+	}
 
 	resourceStr := requestBody{}
 	var resourceArr []requestBody
@@ -113,8 +140,8 @@ func (service *PgService) GetResStat(c *gin.Context) {
 				URL:     p.URL,
 				Status:  check(p.Err.String),
 				WAF:     check(p.Waf.String),
-				SSL:     check(p.Issuer),
-				DateEnd: p.EndDate,
+				SSL:     check(p.Issuer.String),
+				DateEnd: p.EndDate.String,
 			},
 		}
 
@@ -125,13 +152,11 @@ func (service *PgService) GetResStat(c *gin.Context) {
 		resourceArr,
 	}
 
-	for i := 0; i < len(resourceArr); i++ {
-		fmt.Println(resourceArr[i])
-	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": string(jsonParse(arr)),
+	})
 
-	fmt.Println("-----------------------")
-
-	fmt.Println(string(jsonParse(arr)))
 }
 
 //AddOwner функция добавления организации
@@ -139,21 +164,33 @@ func (service *PgService) AddOwner(c *gin.Context) {
 	var own owner
 	err := c.BindJSON(&own)
 	if err != nil {
-		fmt.Println("err: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
 	}
 
 	args := []any{own.FullName, own.ShortName}
 
 	if checkDataInDB("select * from owners where nameown = '" + own.FullName + "'") {
 		fmt.Println("already exist")
-		return
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": "already exist",
+		})
 	}
 	res := helpers.Exec("INSERT INTO owners (nameown, shortname) VALUES ($1,$2)", args, serverConf.DefaultConfig)
 
 	if !res {
-		fmt.Println("error: ", res)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
 	}
-	fmt.Println("res: ", res)
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": res,
+	})
 }
 
 //AddEmployee функция добавления нового пользователя
@@ -162,28 +199,42 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 	err := c.BindJSON(&emp)
 	if err != nil {
 		fmt.Println("err: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
 	}
 
 	if checkDataInDB("select * from usdata where emailus = '" + emp.Email + "'") {
 		fmt.Println("already exist")
-		return
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": "already exist",
+		})
 	}
 
 	args := []any{emp.Email, emp.Password, emp.Access}
 
 	res := helpers.Exec("INSERT INTO users (emailus, passwordus, accessus) VALUES ($1,$2,$3)", args, serverConf.DefaultConfig)
 	if !res {
-		fmt.Println("error: ", res)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
 	}
-	fmt.Println("res: ", res)
 
 	args = []any{emp.Email, emp.Initials}
 
 	res = helpers.Exec("INSERT INTO usdata (emailus, fio) VALUES ($1,$2)", args, serverConf.DefaultConfig)
 	if !res {
-		fmt.Println("error: ", res)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
 	}
-	fmt.Println("res: ", res)
+	c.JSON(http.StatusBadRequest, gin.H{
+		"code": http.StatusBadRequest,
+		"body": res,
+	})
 }
 
 //AddResource добавление нового ресурса
@@ -191,7 +242,9 @@ func (service *PgService) AddResource(c *gin.Context) {
 	var resource resource
 	err := c.BindJSON(&resource)
 	if err != nil {
-		fmt.Println("err: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
 	}
 
 	userId := getUserId("select * from usdata where emailus = '" + resource.Email + "'")
@@ -200,22 +253,32 @@ func (service *PgService) AddResource(c *gin.Context) {
 	args := []any{resource.Url, resource.Ip, userId, ownId}
 
 	if checkDataInDB("select * from resource where nameurl = '" + resource.Url + "'") {
-		fmt.Println("already exist")
-		return
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": "already exist",
+		})
 	}
 
 	res := helpers.Exec("INSERT INTO url (nameurl, ip,idusd,idowner) VALUES ($1,$2,$3,$4)", args, serverConf.DefaultConfig)
 	if !res {
-		fmt.Println("error: ", res)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
 	}
-	fmt.Println("res: ", res)
 
 	args = []any{resource.Url, resource.Ip}
 	res = helpers.Exec("INSERT INTO resource (nameurl, ipfirst) VALUES ($1,$2)", args, serverConf.DefaultConfig)
 	if !res {
-		fmt.Println("error: ", res)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
 	}
-	fmt.Println("res: ", res)
+	c.JSON(http.StatusBadRequest, gin.H{
+		"code": http.StatusBadRequest,
+		"body": res,
+	})
 }
 
 func getOwnerId(query string) int {
@@ -271,7 +334,9 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	var name ownName
 	err := c.BindJSON(&name)
 	if err != nil {
-		fmt.Println("err: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
 	}
 	ownId := getOwnerId("select * from owners where shortname = '" + name.Name + "'")
 	fmt.Println("ownId: ", ownId)
@@ -282,6 +347,11 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	fmt.Println("select * from url where idowner = " + strconv.Itoa(ownId) + "'")
 	rows, err := helpers.Select("select * from url where idowner = '"+strconv.Itoa(ownId)+"'", serverConf.DefaultConfig)
 	defer rows.Close()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+	}
 
 	for rows.Next() {
 		p := resourceInfo{}
@@ -306,7 +376,7 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 			Url:      p.URL,
 			Error:    check(p.Err.String),
 			Waf:      check(p.Waf.String),
-			DateCert: p.EndDate,
+			DateCert: p.EndDate.String,
 			Email:    getUserEmail("select * from usdata where idusd = '" + strconv.FormatInt(p.IDUser.Int64, 10) + "'"),
 		}
 
@@ -317,7 +387,10 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 		resArr,
 	}
 
-	fmt.Println("req: ", req)
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": string(jsonParse(req)),
+	})
 }
 
 func getUserEmail(query string) string {
