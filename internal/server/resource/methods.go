@@ -39,7 +39,6 @@ func checkDataInDB(query string) bool {
 	return false
 }
 
-//GetStat todo: map убрать, сделать структуру
 //GetStat функция вывода общей статистики
 func (service *PgService) GetStat(c *gin.Context) {
 	rows, err := helpers.Select("select * from stat", serverConf.DefaultConfig)
@@ -84,15 +83,6 @@ func (service *PgService) GetStat(c *gin.Context) {
 			p.allCertificate,
 			p.okDateCertificate,
 		}
-
-		//statMap = map[string]int{
-		//	"allServers":        p.allServers,
-		//	"errorServers":      p.errorServers,
-		//	"workServers":       p.workServers,
-		//	"withWaf":           p.withWaf,
-		//	"allCertificate":    p.allCertificate,
-		//	"okDateCertificate": p.okDateCertificate,
-		//}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -330,6 +320,30 @@ func getUserId(query string) int {
 	return id
 }
 
+func getUserEmail(query string) string {
+	email := ""
+	rows, err := helpers.Select(query, serverConf.DefaultConfig)
+	defer rows.Close()
+	if err != nil {
+		log.Fatalln("error: ", err)
+		return ""
+	}
+	for rows.Next() {
+		p := user{}
+		err = rows.Scan(
+			&p.ID,
+			&p.Email,
+			&p.FIO,
+		)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		email = p.Email
+	}
+	return email
+}
+
 func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	var name ownName
 	err := c.BindJSON(&name)
@@ -391,28 +405,4 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 		"code": http.StatusOK,
 		"body": string(jsonParse(req)),
 	})
-}
-
-func getUserEmail(query string) string {
-	email := ""
-	rows, err := helpers.Select(query, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		log.Fatalln("error: ", err)
-		return ""
-	}
-	for rows.Next() {
-		p := user{}
-		err = rows.Scan(
-			&p.ID,
-			&p.Email,
-			&p.FIO,
-		)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		email = p.Email
-	}
-	return email
 }
