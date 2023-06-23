@@ -131,3 +131,12 @@ type ownerInfo struct {
 	Waf   int `json:"Waf"`
 	Users int `json:"Users"`
 }
+
+type resourceName struct {
+	Name string `json:"name"`
+}
+
+type updateResource struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}

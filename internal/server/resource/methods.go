@@ -9,8 +9,6 @@ import (
 	"net/http"
 )
 
-//todo: убрать конкатенацию везде
-
 //GetStat функция вывода общей статистики
 func (service *PgService) GetStat(c *gin.Context) {
 	rows, err := helpers.Select("select * from stat", nil, serverConf.DefaultConfig)
@@ -285,10 +283,18 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	}
 
 	ownId := getOwnerId("select * from owners where shortname = $1", args)
+	if ownId == 0 {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": "no data in data base",
+		})
+		return
+	}
 
 	res := resourceByOwner{}
 	var resArr []resourceByOwner
 
+	fmt.Println("id: ", ownId)
 	args = []any{ownId}
 	rows, err := helpers.Select("select * from url where idowner = $1", args, serverConf.DefaultConfig)
 	defer rows.Close()
@@ -384,5 +390,98 @@ func (service *PgService) GetInformationAboutOwner(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":     http.StatusOK,
 		"resource": string(jsonParse(req)),
+	})
+}
+
+func (service *PgService) DeleteOwner(c *gin.Context) {
+	var name ownName
+	err := c.BindJSON(&name)
+	if err != nil {
+		fmt.Println("err: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
+		return
+	}
+	args := []any{name.Name}
+	res := helpers.Exec("delete from owners where nameown = $1", args, serverConf.DefaultConfig)
+	if !res {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
+		return
+	}
+	c.JSON(http.StatusBadRequest, gin.H{
+		"code": http.StatusBadRequest,
+		"body": res,
+	})
+}
+
+func (service *PgService) DeleteResource(c *gin.Context) {
+	var name resourceName
+	err := c.BindJSON(&name)
+	if err != nil {
+		fmt.Println("err: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
+		return
+	}
+	args := []any{name.Name}
+	res := helpers.Exec("delete from url where nameurl = $1", args, serverConf.DefaultConfig)
+	if !res {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
+		return
+	}
+	res = helpers.Exec("delete from resource where nameurl = $1", args, serverConf.DefaultConfig)
+	if !res {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
+		return
+	}
+	c.JSON(http.StatusBadRequest, gin.H{
+		"code": http.StatusBadRequest,
+		"body": res,
+	})
+}
+
+func (service *PgService) UpdateResource(c *gin.Context) {
+	var resource updateResource
+	err := c.BindJSON(&resource)
+	if err != nil {
+		fmt.Println("err: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
+		return
+	}
+
+	args := []any{resource.Email}
+	userId := getUserId("select * from usdata where emailus = $1", args)
+	if userId == 0 {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": "no data in data base",
+		})
+		return
+	}
+	args = []any{resource.Name, userId}
+	res := helpers.Exec("update url set idusd = $2 where nameurl = $1", args, serverConf.DefaultConfig)
+	if !res {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
+		return
+	}
+	c.JSON(http.StatusBadRequest, gin.H{
+		"code": http.StatusBadRequest,
+		"body": res,
 	})
 }

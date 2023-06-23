@@ -16,4 +16,7 @@ type Service interface {
 	AddOwner(c *gin.Context)
 	FindResourceByOwner(c *gin.Context)
 	GetInformationAboutOwner(c *gin.Context)
+	DeleteOwner(c *gin.Context)
+	DeleteResource(c *gin.Context)
+	UpdateResource(c *gin.Context)
 }

@@ -12,9 +12,9 @@ func checkDataInDB(query string, args []any) bool {
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
-		return true
+		return false
 	}
-	return false
+	return true
 }
 
 func jsonParse(variable any) []byte {
@@ -36,6 +36,9 @@ func check(variable string) bool {
 }
 
 func getOwnerId(query string, args []any) int {
+	if !checkDataInDB("select * from usdata where emailus = $1", args) {
+		return 0
+	}
 	id := 0
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
@@ -60,6 +63,9 @@ func getOwnerId(query string, args []any) int {
 }
 
 func getUserId(query string, args []any) int {
+	if !checkDataInDB("select * from usdata where emailus = $1", args) {
+		return 0
+	}
 	id := 0
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
