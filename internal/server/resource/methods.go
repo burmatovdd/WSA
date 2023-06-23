@@ -3,45 +3,17 @@ package resource
 import (
 	"WAF_Analytics/configs/serverConf"
 	"WAF_Analytics/internal/server/postgresql/helpers"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"log"
 	"net/http"
-	"strconv"
 )
 
-func jsonParse(variable any) []byte {
-	jsonStr, err := json.Marshal(variable)
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-	}
-	return jsonStr
-}
-
-func check(variable string) bool {
-	if variable == "Error resolve and not curl" ||
-		variable == "Not Waf" ||
-		variable == "Error certificate" {
-		return false
-	} else {
-		return true
-	}
-}
-
-func checkDataInDB(query string) bool {
-	rows, err := helpers.Select(query, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		return true
-	}
-	return false
-}
+//todo: убрать конкатенацию везде
 
 //GetStat функция вывода общей статистики
 func (service *PgService) GetStat(c *gin.Context) {
-	rows, err := helpers.Select("select * from stat", serverConf.DefaultConfig)
+	rows, err := helpers.Select("select * from stat", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 
 	if err != nil {
@@ -94,7 +66,7 @@ func (service *PgService) GetStat(c *gin.Context) {
 
 //GetResStat функция вывода данных по каждому ресурсу
 func (service *PgService) GetResStat(c *gin.Context) {
-	rows, err := helpers.Select("select * from url", serverConf.DefaultConfig)
+	rows, err := helpers.Select("select * from url", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 
 	if err != nil {
@@ -162,9 +134,9 @@ func (service *PgService) AddOwner(c *gin.Context) {
 		return
 	}
 
-	args := []any{own.FullName, own.ShortName}
+	args := []any{own.FullName}
 
-	if checkDataInDB("select * from owners where nameown = '" + own.FullName + "'") {
+	if checkDataInDB("select * from owners where nameown = $1", args) {
 		fmt.Println("already exist")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -172,6 +144,7 @@ func (service *PgService) AddOwner(c *gin.Context) {
 		})
 		return
 	}
+	args = []any{own.FullName, own.ShortName}
 	res := helpers.Exec("INSERT INTO owners (nameown, shortname) VALUES ($1,$2)", args, serverConf.DefaultConfig)
 
 	if !res {
@@ -200,7 +173,9 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 		return
 	}
 
-	if checkDataInDB("select * from usdata where emailus = '" + emp.Email + "'") {
+	args := []any{emp.Email}
+
+	if checkDataInDB("select * from usdata where emailus = $1", args) {
 		fmt.Println("already exist")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -209,7 +184,7 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 		return
 	}
 
-	args := []any{emp.Email, emp.Password, emp.Access}
+	args = []any{emp.Email, emp.Password, emp.Access}
 
 	res := helpers.Exec("INSERT INTO users (emailus, passwordus, accessus) VALUES ($1,$2,$3)", args, serverConf.DefaultConfig)
 	if !res {
@@ -247,12 +222,15 @@ func (service *PgService) AddResource(c *gin.Context) {
 		return
 	}
 
-	userId := getUserId("select * from usdata where emailus = '" + resource.Email + "'")
-	ownId := getOwnerId("select * from owners where shortname = '" + resource.Owner + "'")
+	args := []any{resource.Email}
+	userId := getUserId("select * from usdata where emailus = $1", args)
 
-	args := []any{resource.Url, resource.Ip, userId, ownId}
+	args = []any{resource.Owner}
+	ownId := getOwnerId("select * from owners where shortname = $1", args)
 
-	if checkDataInDB("select * from resource where nameurl = '" + resource.Url + "'") {
+	args = []any{resource.Url}
+
+	if checkDataInDB("select * from resource where nameurl = $1", args) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"body": "already exist",
@@ -260,6 +238,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 		return
 	}
 
+	args = []any{resource.Url, resource.Ip, userId, ownId}
 	res := helpers.Exec("INSERT INTO url (nameurl, ip,idusd,idowner) VALUES ($1,$2,$3,$4)", args, serverConf.DefaultConfig)
 	if !res {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -284,79 +263,6 @@ func (service *PgService) AddResource(c *gin.Context) {
 	})
 }
 
-func getOwnerId(query string) int {
-	id := 0
-	rows, err := helpers.Select(query, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		log.Fatalln("error: ", err)
-		return 0
-	}
-	for rows.Next() {
-		p := own{}
-		err = rows.Scan(
-			&p.ID,
-			&p.NameOwn,
-			&p.ShortName,
-		)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		id = p.ID
-	}
-	return id
-}
-
-func getUserId(query string) int {
-	id := 0
-	rows, err := helpers.Select(query, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		log.Fatalln("error: ", err)
-		return 0
-	}
-
-	for rows.Next() {
-		p := user{}
-		err = rows.Scan(
-			&p.ID,
-			&p.Email,
-			&p.FIO,
-		)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		id = p.ID
-	}
-	return id
-}
-
-func getUserEmail(query string) string {
-	email := ""
-	rows, err := helpers.Select(query, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		log.Fatalln("error: ", err)
-		return ""
-	}
-	for rows.Next() {
-		p := user{}
-		err = rows.Scan(
-			&p.ID,
-			&p.Email,
-			&p.FIO,
-		)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		email = p.Email
-	}
-	return email
-}
-
 func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	var name ownName
 	err := c.BindJSON(&name)
@@ -367,7 +273,8 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 		return
 	}
 
-	ch := checkDataInDB("select * from owners where shortname = '" + name.Name + "'")
+	args := []any{name.Name}
+	ch := checkDataInDB("select * from owners where shortname = $1", args)
 
 	if !ch {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -377,12 +284,13 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 		return
 	}
 
-	ownId := getOwnerId("select * from owners where shortname = '" + name.Name + "'")
+	ownId := getOwnerId("select * from owners where shortname = $1", args)
 
 	res := resourceByOwner{}
 	var resArr []resourceByOwner
 
-	rows, err := helpers.Select("select * from url where idowner = '"+strconv.Itoa(ownId)+"'", serverConf.DefaultConfig)
+	args = []any{ownId}
+	rows, err := helpers.Select("select * from url where idowner = $1", args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -409,18 +317,18 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 			fmt.Println("error: ", err)
 			continue
 		}
-
+		args = []any{p.IDUser.Int64}
 		res = resourceByOwner{
 			Url:      p.URL,
 			Error:    check(p.Err.String),
 			Waf:      check(p.Waf.String),
 			DateCert: p.EndDate.String,
-			Email:    getUserEmail("select * from usdata where idusd = '" + strconv.FormatInt(p.IDUser.Int64, 10) + "'"),
+			Email:    getUserEmail("select * from usdata where idusd = $1", args),
 		}
 
 		resArr = append(resArr, res)
 	}
-	req := ResByOwnReq{
+	req := resByOwnReq{
 		name.Name,
 		resArr,
 	}
@@ -428,5 +336,53 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"body": string(jsonParse(req)),
+	})
+}
+
+func (service *PgService) GetInformationAboutOwner(c *gin.Context) {
+	rows, err := helpers.Select("select * from owners", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
+		return
+	}
+
+	req := []ownerInfo{}
+
+	for rows.Next() {
+		p := own{}
+		err = rows.Scan(
+			&p.ID,
+			&p.NameOwn,
+			&p.ShortName,
+		)
+		if err != nil {
+			continue
+		}
+		args := []any{p.ID}
+		users, err := countUsers("select idusd, count(*) from url where idowner = $1 group by idusd", args)
+		if err != nil {
+			continue
+		}
+		waf, err := counterWaf("select waf, count(*) from url where idowner = $1 group by waf", args)
+		if err != nil {
+			continue
+		}
+		url, err := counterUrl("select nameurl, count(*) from url where idowner = $1 group by nameurl", args)
+		if err != nil {
+			continue
+		}
+		req = append(req, ownerInfo{
+			p.ID,
+			url.Number,
+			waf.Number,
+			users.Number,
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":     http.StatusOK,
+		"resource": string(jsonParse(req)),
 	})
 }

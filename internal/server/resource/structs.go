@@ -97,7 +97,7 @@ type ownName struct {
 	Name string `json:"name"`
 }
 
-type ResByOwnReq struct {
+type resByOwnReq struct {
 	OwnerName string `json:"ownerName"`
 	Resourses []resourceByOwner
 }
@@ -108,4 +108,26 @@ type resourceByOwner struct {
 	Waf      bool   `json:"waf"`
 	DateCert string `json:"dateCert"`
 	Email    string `json:"email"`
+}
+
+type urlNumber struct {
+	Url    string `json:"url"`
+	Number int    `json:"number"`
+}
+
+type userNumber struct {
+	IDOwner int `json:"IDOwner"`
+	Number  int `json:"Users"`
+}
+
+type waf struct {
+	Waf    string `json:"waf"`
+	Number int    `json:"count"`
+}
+
+type ownerInfo struct {
+	ID    int `json:"ID"`
+	Url   int `json:"Url"`
+	Waf   int `json:"Waf"`
+	Users int `json:"Users"`
 }

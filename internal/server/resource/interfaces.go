@@ -15,4 +15,5 @@ type Service interface {
 	AddEmployee(c *gin.Context)
 	AddOwner(c *gin.Context)
 	FindResourceByOwner(c *gin.Context)
+	GetInformationAboutOwner(c *gin.Context)
 }

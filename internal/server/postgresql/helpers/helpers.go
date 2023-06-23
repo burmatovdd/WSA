@@ -16,14 +16,14 @@ func getCs(conString serverConf.Config) cs {
 	}
 }
 
-func Select(query string, conString serverConf.Config) (*sql.Rows, error) {
+func Select(query string, arg []any, conString serverConf.Config) (*sql.Rows, error) {
 	db, err := sql.Open("postgres", getCs(conString).cs)
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
 
-	rows, err := db.Query(query)
+	rows, err := db.Query(query, arg...)
 	if err != nil {
 		return nil, err
 	}
