@@ -261,6 +261,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 	})
 }
 
+//FindResourceByOwner поиск ресурсов по владельцу
 func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	var name ownName
 	err := c.BindJSON(&name)
@@ -345,6 +346,7 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	})
 }
 
+//GetInformationAboutOwner получение информации о каждом владельце
 func (service *PgService) GetInformationAboutOwner(c *gin.Context) {
 	rows, err := helpers.Select("select * from owners", nil, serverConf.DefaultConfig)
 	defer rows.Close()
@@ -355,7 +357,7 @@ func (service *PgService) GetInformationAboutOwner(c *gin.Context) {
 		return
 	}
 
-	req := []ownerInfo{}
+	req := []ownerInfoReq{}
 
 	for rows.Next() {
 		p := own{}
@@ -380,11 +382,13 @@ func (service *PgService) GetInformationAboutOwner(c *gin.Context) {
 		if err != nil {
 			continue
 		}
-		req = append(req, ownerInfo{
+		req = append(req, ownerInfoReq{
 			p.ID,
-			url.Number,
-			waf.Number,
-			users.Number,
+			ownerInfo{
+				url.Number,
+				waf.Number,
+				users.Number,
+			},
 		})
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -393,6 +397,7 @@ func (service *PgService) GetInformationAboutOwner(c *gin.Context) {
 	})
 }
 
+//DeleteOwner удаление владельца
 func (service *PgService) DeleteOwner(c *gin.Context) {
 	var name ownName
 	err := c.BindJSON(&name)
@@ -418,6 +423,7 @@ func (service *PgService) DeleteOwner(c *gin.Context) {
 	})
 }
 
+//DeleteResource удаление ресурса
 func (service *PgService) DeleteResource(c *gin.Context) {
 	var name resourceName
 	err := c.BindJSON(&name)
@@ -451,6 +457,7 @@ func (service *PgService) DeleteResource(c *gin.Context) {
 	})
 }
 
+//UpdateResource обновление ресурса
 func (service *PgService) UpdateResource(c *gin.Context) {
 	var resource updateResource
 	err := c.BindJSON(&resource)

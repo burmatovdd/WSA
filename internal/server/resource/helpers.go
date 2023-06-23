@@ -120,7 +120,7 @@ func counterUrl(query string, args []any) (urlNumber, error) {
 	if err != nil {
 		return urlNumber{}, err
 	}
-
+	k := 0
 	req := urlNumber{}
 	for rows.Next() {
 		p := urlNumber{}
@@ -131,9 +131,11 @@ func counterUrl(query string, args []any) (urlNumber, error) {
 		if err != nil {
 			return urlNumber{}, err
 		}
+		k++
 		req = urlNumber{
 			p.Url,
-			p.Number}
+			k,
+		}
 	}
 	return req, nil
 }
@@ -146,7 +148,7 @@ func counterWaf(query string, args []any) (waf, error) {
 	}
 
 	req := waf{}
-
+	k := 0
 	for rows.Next() {
 		p := waf{}
 		err = rows.Scan(
@@ -156,9 +158,12 @@ func counterWaf(query string, args []any) (waf, error) {
 		if err != nil {
 			return waf{}, err
 		}
+		if p.Waf != "Not Waf" {
+			k++
+		}
 		req = waf{
 			p.Waf,
-			p.Number}
+			k}
 	}
 	return req, nil
 
@@ -171,7 +176,7 @@ func countUsers(query string, args []any) (userNumber, error) {
 		return userNumber{}, err
 	}
 	req := userNumber{}
-
+	k := 0
 	for rows.Next() {
 		p := userNumber{}
 		err = rows.Scan(
@@ -181,9 +186,10 @@ func countUsers(query string, args []any) (userNumber, error) {
 		if err != nil {
 			return userNumber{}, err
 		}
+		k++
 		req = userNumber{
 			p.IDOwner,
-			p.Number}
+			k}
 	}
 	return req, nil
 }

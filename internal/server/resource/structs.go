@@ -125,8 +125,12 @@ type waf struct {
 	Number int    `json:"count"`
 }
 
+type ownerInfoReq struct {
+	ID   int       `json:"ID"`
+	Info ownerInfo `json:"Info"`
+}
+
 type ownerInfo struct {
-	ID    int `json:"ID"`
 	Url   int `json:"Url"`
 	Waf   int `json:"Waf"`
 	Users int `json:"Users"`
