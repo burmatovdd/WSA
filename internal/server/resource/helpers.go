@@ -5,7 +5,10 @@ import (
 	"WAF_Analytics/internal/server/postgresql/helpers"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
+	"net/http"
+	"time"
 )
 
 func checkDataInDB(query string, args []any) bool {
@@ -192,4 +195,85 @@ func countUsers(query string, args []any) (userNumber, error) {
 			k}
 	}
 	return req, nil
+}
+
+func countDuration(today time.Time) (durationMonday, durationFriday time.Duration) {
+	durationInDays := int(today.Weekday()) - 1
+	durationMonday = time.Duration(24 * (durationInDays + 7))
+
+	durationInDays = 5 - int(today.Weekday())
+	durationFriday = time.Duration(24 * (7 - durationInDays))
+	return durationMonday, durationFriday
+}
+
+func findLastWeek(today time.Time) (monday, friday time.Time) {
+	durationMonday, durationFriday := countDuration(today)
+	lastMonday := today.Add(-durationMonday * time.Hour)
+	lastFriday := today.Add(-durationFriday * time.Hour)
+
+	return lastMonday, lastFriday
+}
+
+func findCurrentWeek(today time.Time) (monday, friday time.Time) {
+	durationMonday, durationFriday := countDuration(today)
+	monday = today.Add(durationMonday * time.Hour)
+	friday = today.Add(durationFriday * time.Hour)
+
+	return monday, friday
+}
+
+func counter(c *gin.Context, args []any) (noResolve, newWaf int) {
+	res, _ := getInfoAboutResource(c, "select * from resource where datenores between $1 and $2", args)
+	noResolve = len(res)
+
+	res, _ = getInfoAboutResource(c, "select * from resource where wafdate between $1 and $2", args)
+	newWaf = len(res)
+
+	return noResolve, newWaf
+}
+
+func getInfoAboutResource(c *gin.Context, query string, args []any) ([]resourceBody, error) {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return nil, err
+	}
+
+	res := []resourceBody{}
+
+	for rows.Next() {
+		p := resourceBody{}
+		err := rows.Scan(
+			&p.ID,
+			&p.NameURL,
+			&p.IpFirst,
+			&p.IpNow,
+			&p.DateFirst,
+			&p.Status,
+			&p.DateNoRes,
+			&p.WafDate,
+			&p.WafIp,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		res = append(res, resourceBody{
+			p.ID,
+			p.NameURL,
+			p.IpFirst,
+			p.IpNow,
+			p.DateFirst,
+			p.Status,
+			p.DateNoRes,
+			p.WafDate,
+			p.WafIp,
+		})
+	}
+	return res, nil
 }
