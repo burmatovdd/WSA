@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"net/http"
+	"time"
 )
 
 //GetStat функция вывода общей статистики
@@ -134,7 +135,7 @@ func (service *PgService) AddOwner(c *gin.Context) {
 
 	args := []any{own.FullName}
 
-	if checkDataInDB("select * from owners where nameown = $1", args) {
+	if !checkDataInDB("select * from owners where nameown = $1", args) {
 		fmt.Println("already exist")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -173,7 +174,7 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 
 	args := []any{emp.Email}
 
-	if checkDataInDB("select * from usdata where emailus = $1", args) {
+	if !checkDataInDB("select * from usdata where emailus = $1", args) {
 		fmt.Println("already exist")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -228,7 +229,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 
 	args = []any{resource.Url}
 
-	if checkDataInDB("select * from resource where nameurl = $1", args) {
+	if !checkDataInDB("select * from resource where nameurl = $1", args) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"body": "already exist",
@@ -490,5 +491,33 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 	c.JSON(http.StatusBadRequest, gin.H{
 		"code": http.StatusBadRequest,
 		"body": res,
+	})
+}
+
+func (service *PgService) GetWeekStat(c *gin.Context) {
+	lastMonday, lastFriday := findLastWeek(time.Now())
+	args := []any{lastMonday.Format("2006-01-02"), lastFriday.Format("2006-01-02")}
+	noResolve, newWaf := counter(c, args)
+
+	LastWeek := lastWeek{
+		NoResolve: noResolve,
+		NewWaf:    newWaf,
+	}
+
+	monday, friday := findCurrentWeek(time.Now())
+	args = []any{monday.Format("2006-01-02"), friday.Format("2006-01-02")}
+	noResolve, newWaf = counter(c, args)
+
+	CurrentWeek := currentWeek{
+		NoResolve: noResolve,
+		NewWaf:    newWaf,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": string(jsonParse(report{
+			LastWeek,
+			CurrentWeek,
+		})),
 	})
 }

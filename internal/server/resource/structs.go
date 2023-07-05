@@ -144,3 +144,30 @@ type updateResource struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
+
+type resourceBody struct {
+	ID        int            `json:"ID"`
+	NameURL   string         `json:"NameURL"`
+	IpFirst   sql.NullString `json:"IpFirst"`
+	IpNow     sql.NullString `json:"IpNow"`
+	DateFirst sql.NullTime   `json:"DateFirst"`
+	Status    sql.NullString `json:"Status"`
+	DateNoRes sql.NullTime   `json:"DateNoRes"`
+	WafDate   sql.NullTime   `json:"WafDate"`
+	WafIp     sql.NullString `json:"WafIp"`
+}
+
+type report struct {
+	LastWeek    lastWeek    `json:"lastWeek"`
+	CurrentWeek currentWeek `json:"currentWeek"`
+}
+
+type currentWeek struct {
+	NoResolve int `json:"noResolve"`
+	NewWaf    int `json:"newWaf"`
+}
+
+type lastWeek struct {
+	NoResolve int `json:"noResolve"`
+	NewWaf    int `json:"newWaf"`
+}

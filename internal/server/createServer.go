@@ -33,6 +33,7 @@ func (service *Service) CreateServer() {
 	router.GET("/api/delete-owner", method.DeleteOwner)
 	router.GET("/api/delete-resource", method.DeleteResource)
 	router.GET("/api/update-resource", method.UpdateResource)
+	router.GET("/api/get-week-stat", method.GetWeekStat)
 	err := router.Run(":8080")
 	if err != nil {
 		fmt.Println("err: ", err)

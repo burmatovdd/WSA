@@ -19,4 +19,5 @@ type Service interface {
 	DeleteOwner(c *gin.Context)
 	DeleteResource(c *gin.Context)
 	UpdateResource(c *gin.Context)
+	GetWeekStat(c *gin.Context)
 }
