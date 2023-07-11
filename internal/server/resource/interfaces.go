@@ -20,4 +20,5 @@ type Service interface {
 	DeleteResource(c *gin.Context)
 	UpdateResource(c *gin.Context)
 	GetWeekStat(c *gin.Context)
+	Login(c *gin.Context)
 }

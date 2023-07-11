@@ -171,3 +171,14 @@ type lastWeek struct {
 	NoResolve int `json:"noResolve"`
 	NewWaf    int `json:"newWaf"`
 }
+
+type login struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+type users struct {
+	Id       int    `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Access   bool   `json:"access"`
+}

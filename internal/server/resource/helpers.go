@@ -11,16 +11,7 @@ import (
 	"time"
 )
 
-func checkDataInDB(query string, args []any) bool {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		return false
-	}
-	return true
-}
-
-func jsonParse(variable any) []byte {
+func toJson(variable any) []byte {
 	jsonStr, err := json.Marshal(variable)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -38,17 +29,56 @@ func check(variable string) bool {
 	}
 }
 
-func getOwnerId(query string, args []any) int {
-	if !checkDataInDB("select * from usdata where emailus = $1", args) {
-		return 0
+func checkResourceInDB(query string, args []any) bool {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	res := resourceBody{}
+
+	for rows.Next() {
+		p := resourceBody{}
+		err = rows.Scan(
+			&p.ID,
+			&p.NameURL,
+			&p.IpFirst,
+			&p.IpNow,
+			&p.DateFirst,
+			&p.Status,
+			&p.DateNoRes,
+			&p.WafDate,
+			&p.WafIp,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		res = resourceBody{
+			p.ID,
+			p.NameURL,
+			p.IpFirst,
+			p.IpNow,
+			p.DateFirst,
+			p.Status,
+			p.DateNoRes,
+			p.WafDate,
+			p.WafIp,
+		}
 	}
-	id := 0
+	if res.ID != 0 {
+		return false
+	}
+	return true
+}
+
+func getOwnerId(query string, args []any) int {
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
 		log.Fatalln("error: ", err)
 		return 0
 	}
+	owner := own{}
 	for rows.Next() {
 		p := own{}
 		err = rows.Scan(
@@ -60,16 +90,19 @@ func getOwnerId(query string, args []any) int {
 			fmt.Println(err)
 			continue
 		}
-		id = p.ID
+		owner = own{
+			p.ID,
+			p.NameOwn,
+			p.ShortName,
+		}
 	}
-	return id
+	if owner.NameOwn == "" {
+		return 0
+	}
+	return owner.ID
 }
 
 func getUserId(query string, args []any) int {
-	if !checkDataInDB("select * from usdata where emailus = $1", args) {
-		return 0
-	}
-	id := 0
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
@@ -77,6 +110,7 @@ func getUserId(query string, args []any) int {
 		return 0
 	}
 
+	us := user{}
 	for rows.Next() {
 		p := user{}
 		err = rows.Scan(
@@ -88,9 +122,16 @@ func getUserId(query string, args []any) int {
 			fmt.Println(err)
 			continue
 		}
-		id = p.ID
+		us = user{
+			p.ID,
+			p.Email,
+			p.FIO,
+		}
 	}
-	return id
+	if us.Email == "" {
+		return 0
+	}
+	return us.ID
 }
 
 func getUserEmail(query string, args []any) string {
@@ -276,4 +317,98 @@ func getInfoAboutResource(c *gin.Context, query string, args []any) ([]resourceB
 		})
 	}
 	return res, nil
+}
+
+func checkLogin(query string, args []any) bool {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	us := users{}
+
+	for rows.Next() {
+		p := users{}
+		err = rows.Scan(
+			&p.Id,
+			&p.Email,
+			&p.Password,
+			&p.Access,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		us = users{
+			p.Id,
+			p.Email,
+			p.Password,
+			p.Access,
+		}
+	}
+	if us.Email == "" {
+		return false
+	}
+	return true
+}
+
+func checkOwner(query string, args []any) bool {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	o := own{}
+
+	for rows.Next() {
+		p := own{}
+		err = rows.Scan(
+			&p.ID,
+			&p.NameOwn,
+			&p.ShortName,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		o = own{
+			p.ID,
+			p.NameOwn,
+			p.ShortName,
+		}
+	}
+	if o.ID == 0 {
+		return false
+	}
+	return true
+}
+
+func checkEmployee(query string, args []any) bool {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	us := users{}
+
+	for rows.Next() {
+		p := users{}
+		err = rows.Scan(
+			&p.Id,
+			&p.Email,
+			&p.Password,
+			&p.Access,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		us = users{
+			p.Id,
+			p.Email,
+			p.Password,
+			p.Access,
+		}
+	}
+	if us.Email != "" {
+		return false
+	}
+	return true
 }

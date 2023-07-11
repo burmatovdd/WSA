@@ -1,33 +1,35 @@
 <template>
-<div class="container">
-  <div class="login">
+<div class="container container-login">
     <h1 class="login-title">Welcome to Waf Analytics</h1>
     <Form class="login-form" @submit="onSubmit" v-slot="{ meta }">
+      <ErrorMessage name="login" class="error-message"/>
+      <p class="error-message" :class="{noError: !isActive}">Неправильный логин или пароль</p>
       <Field name="login"
              type="text"
-             class="login-from_input"
+             class="login-form_input login-form_input--login"
              placeholder="login"
              :rules="validateLogin"/>
-      <ErrorMessage name="login" class="error-message"/>
+      <ErrorMessage name="password" class="error-message"/>
       <Field name="password"
              type="password"
-             class="input-password"
+             class="login-form_input"
              placeholder="password"
              :rules="validatePassword"/>
-      <ErrorMessage name="password" class="error-message"/>
-      <button class="button"
-              :disabled="!meta.valid"
-              @click="login">
+      <button class="button active"
+              id = "button"
+              @click="login"
+              :disabled="!meta.valid">
         login
       </button>
     </Form>
   </div>
-</div>
 </template>
 
 <script>
 import {defineComponent} from 'vue';
 import {Form, Field, ErrorMessage} from 'vee-validate';
+import *as httpClient from "../../httpClient";
+import axios from "axios";
 export default defineComponent( {
   name: "login",
   components: {
@@ -41,7 +43,10 @@ export default defineComponent( {
       password: null
     }
     return {
-      user
+      user,
+      resp : null,
+      errored: false,
+      isActive: false,
     }
   },
   methods: {
@@ -50,29 +55,43 @@ export default defineComponent( {
       this.user.password = values.password;
     },
     validateLogin(value) {
+      this.isActive = false
       // if the field is empty
       if (!value) {
-        return 'This field is required';
+        return 'Поля должны быть заполнеными';
       }
       // if the field is not a valid email
       const regex = /^[A-Za-z0-9]/i;
       if (!regex.test(value)) {
-        return 'login can contain only letters and numbers';
+        return 'логин может содержать только латинские буквы и цифры';
       }
       this.user.login = value;
       // All is good
       return true;
     },
     validatePassword(value) {
+      this.isActive = false
       if (!value) {
-        return 'This field is required';
+        return 'Поля должны быть заполнеными';
       }
       this.user.password = value;
+
       return true;
     },
-    login(){
-      console.log("test")
-    }
+    login: async function () {
+
+      let sendUrl = "http://localhost:8080/api/login";
+
+      let postInfo = httpClient.Post(sendUrl, this.user)
+
+      postInfo.then(response => {
+        this.$router.push('/dashboard');
+      })
+      .catch(err => {
+        this.errored = true;
+        this.isActive = !this.isActive;
+      });
+    },
   }
 })
 </script>

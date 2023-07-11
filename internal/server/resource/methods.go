@@ -59,7 +59,7 @@ func (service *PgService) GetStat(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": string(jsonParse(req)),
+		"body": string(toJson(req)),
 	})
 }
 
@@ -117,7 +117,7 @@ func (service *PgService) GetResStat(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": string(jsonParse(arr)),
+		"body": string(toJson(arr)),
 	})
 
 }
@@ -135,11 +135,10 @@ func (service *PgService) AddOwner(c *gin.Context) {
 
 	args := []any{own.FullName}
 
-	if !checkDataInDB("select * from owners where nameown = $1", args) {
-		fmt.Println("already exist")
+	if !checkOwner("select * from owners where nameown = $1", args) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"body": "already exist",
+			"body": false,
 		})
 		return
 	}
@@ -174,11 +173,11 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 
 	args := []any{emp.Email}
 
-	if !checkDataInDB("select * from usdata where emailus = $1", args) {
+	if !checkEmployee("select * from usdata where emailus = $1", args) {
 		fmt.Println("already exist")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"body": "already exist",
+			"body": false,
 		})
 		return
 	}
@@ -204,8 +203,8 @@ func (service *PgService) AddEmployee(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusBadRequest, gin.H{
-		"code": http.StatusBadRequest,
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 		"body": res,
 	})
 }
@@ -229,10 +228,10 @@ func (service *PgService) AddResource(c *gin.Context) {
 
 	args = []any{resource.Url}
 
-	if !checkDataInDB("select * from resource where nameurl = $1", args) {
+	if !checkResourceInDB("select * from resource where nameurl = $1", args) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"body": "already exist",
+			"body": false,
 		})
 		return
 	}
@@ -256,8 +255,8 @@ func (service *PgService) AddResource(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusBadRequest, gin.H{
-		"code": http.StatusBadRequest,
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 		"body": res,
 	})
 }
@@ -274,12 +273,11 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	}
 
 	args := []any{name.Name}
-	ch := checkDataInDB("select * from owners where shortname = $1", args)
 
-	if !ch {
+	if !checkOwner("select * from owners where shortname = $1", args) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"body": "no data in data base",
+			"body": false,
 		})
 		return
 	}
@@ -288,7 +286,7 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	if ownId == 0 {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"body": "no data in data base",
+			"body": false,
 		})
 		return
 	}
@@ -296,7 +294,6 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 	res := resourceByOwner{}
 	var resArr []resourceByOwner
 
-	fmt.Println("id: ", ownId)
 	args = []any{ownId}
 	rows, err := helpers.Select("select * from url where idowner = $1", args, serverConf.DefaultConfig)
 	defer rows.Close()
@@ -343,7 +340,7 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": string(jsonParse(req)),
+		"body": string(toJson(req)),
 	})
 }
 
@@ -367,22 +364,13 @@ func (service *PgService) GetInformationAboutOwner(c *gin.Context) {
 			&p.NameOwn,
 			&p.ShortName,
 		)
-		if err != nil {
-			continue
-		}
 		args := []any{p.ID}
-		users, err := countUsers("select idusd, count(*) from url where idowner = $1 group by idusd", args)
-		if err != nil {
-			continue
-		}
-		waf, err := counterWaf("select waf, count(*) from url where idowner = $1 group by waf", args)
-		if err != nil {
-			continue
-		}
-		url, err := counterUrl("select nameurl, count(*) from url where idowner = $1 group by nameurl", args)
-		if err != nil {
-			continue
-		}
+		users, _ := countUsers("select idusd, count(*) from url where idowner = $1 group by idusd", args)
+
+		waf, _ := counterWaf("select waf, count(*) from url where idowner = $1 group by waf", args)
+
+		url, _ := counterUrl("select nameurl, count(*) from url where idowner = $1 group by nameurl", args)
+
 		req = append(req, ownerInfoReq{
 			p.ID,
 			ownerInfo{
@@ -394,7 +382,7 @@ func (service *PgService) GetInformationAboutOwner(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code":     http.StatusOK,
-		"resource": string(jsonParse(req)),
+		"resource": string(toJson(req)),
 	})
 }
 
@@ -409,8 +397,19 @@ func (service *PgService) DeleteOwner(c *gin.Context) {
 		})
 		return
 	}
+
 	args := []any{name.Name}
-	res := helpers.Exec("delete from owners where nameown = $1", args, serverConf.DefaultConfig)
+
+	if !checkOwner("select * from owners where nameown = $1", args) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": false,
+		})
+		return
+	}
+
+	args = []any{name.Name, 0}
+	res := helpers.Exec("update url set idowner = $2 where nameurl = $1", args, serverConf.DefaultConfig)
 	if !res {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -418,8 +417,19 @@ func (service *PgService) DeleteOwner(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusBadRequest, gin.H{
-		"code": http.StatusBadRequest,
+
+	args = []any{name.Name}
+	res = helpers.Exec("delete from owners where nameown = $1", args, serverConf.DefaultConfig)
+	if !res {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": res,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 		"body": res,
 	})
 }
@@ -436,6 +446,15 @@ func (service *PgService) DeleteResource(c *gin.Context) {
 		return
 	}
 	args := []any{name.Name}
+
+	if checkResourceInDB("select * from resource where nameurl = $1", args) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": false,
+		})
+		return
+	}
+
 	res := helpers.Exec("delete from url where nameurl = $1", args, serverConf.DefaultConfig)
 	if !res {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -452,8 +471,8 @@ func (service *PgService) DeleteResource(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusBadRequest, gin.H{
-		"code": http.StatusBadRequest,
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 		"body": res,
 	})
 }
@@ -475,7 +494,7 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 	if userId == 0 {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
-			"body": "no data in data base",
+			"body": false,
 		})
 		return
 	}
@@ -488,8 +507,8 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusBadRequest, gin.H{
-		"code": http.StatusBadRequest,
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 		"body": res,
 	})
 }
@@ -515,9 +534,38 @@ func (service *PgService) GetWeekStat(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": string(jsonParse(report{
+		"body": string(toJson(report{
 			LastWeek,
 			CurrentWeek,
 		})),
+	})
+}
+
+func (service *PgService) Login(c *gin.Context) {
+	var login login
+	err := c.BindJSON(&login)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
+		return
+	}
+
+	rows, err := helpers.Select("select * from users", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	args := []any{login.Login, login.Password}
+
+	if !checkLogin("select * from users where emailus = $1 and passwordus = $2", args) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": false,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": true,
 	})
 }
