@@ -238,7 +238,7 @@ func countUsers(query string, args []any) (userNumber, error) {
 	return req, nil
 }
 
-func countDuration(today time.Time) (durationMonday, durationFriday time.Duration) {
+func countDurationToLastWeek(today time.Time) (durationMonday, durationFriday time.Duration) {
 	durationInDays := int(today.Weekday()) - 1
 	durationMonday = time.Duration(24 * (durationInDays + 7))
 
@@ -247,8 +247,17 @@ func countDuration(today time.Time) (durationMonday, durationFriday time.Duratio
 	return durationMonday, durationFriday
 }
 
+func countDurationToCurrentWeek(today time.Time) (durationMonday, durationFriday time.Duration) {
+	durationInDays := int(today.Weekday()) - 1
+	durationMonday = time.Duration(24 * durationInDays)
+
+	durationInDays = 5 - int(today.Weekday())
+	durationFriday = time.Duration(24 * durationInDays)
+	return durationMonday, durationFriday
+}
+
 func findLastWeek(today time.Time) (monday, friday time.Time) {
-	durationMonday, durationFriday := countDuration(today)
+	durationMonday, durationFriday := countDurationToLastWeek(today)
 	lastMonday := today.Add(-durationMonday * time.Hour)
 	lastFriday := today.Add(-durationFriday * time.Hour)
 
@@ -256,8 +265,8 @@ func findLastWeek(today time.Time) (monday, friday time.Time) {
 }
 
 func findCurrentWeek(today time.Time) (monday, friday time.Time) {
-	durationMonday, durationFriday := countDuration(today)
-	monday = today.Add(durationMonday * time.Hour)
+	durationMonday, durationFriday := countDurationToCurrentWeek(today)
+	monday = today.Add(-durationMonday * time.Hour)
 	friday = today.Add(durationFriday * time.Hour)
 
 	return monday, friday

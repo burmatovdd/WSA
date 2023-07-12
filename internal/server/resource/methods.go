@@ -40,7 +40,7 @@ func (service *PgService) GetStat(c *gin.Context) {
 			&p.wafAndKas,
 			&p.wafAndKasProc,
 			&p.allCertificate,
-			&p.okDateCertificate)
+			&p.okCertificate)
 
 		if err != nil {
 			fmt.Println(err)
@@ -53,7 +53,7 @@ func (service *PgService) GetStat(c *gin.Context) {
 			p.workServers,
 			p.withWaf,
 			p.allCertificate,
-			p.okDateCertificate,
+			p.okCertificate,
 		}
 	}
 
