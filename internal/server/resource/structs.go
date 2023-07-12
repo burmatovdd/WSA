@@ -6,29 +6,29 @@ import (
 )
 
 type resStat struct {
-	ID                int
-	date              time.Time
-	allServers        int
-	errorServers      int
-	workServers       int
-	withWaf           int
-	possible          float64
-	wafProcPossible   float64
-	wafProc           float64
-	withKas           int
-	wafAndKas         int
-	wafAndKasProc     float64
-	allCertificate    int
-	okDateCertificate int
+	ID              int
+	date            time.Time
+	allServers      int
+	errorServers    int
+	workServers     int
+	withWaf         int
+	possible        float64
+	wafProcPossible float64
+	wafProc         float64
+	withKas         int
+	wafAndKas       int
+	wafAndKasProc   float64
+	allCertificate  int
+	okCertificate   int
 }
 
 type reqStat struct {
-	AllServers         int `json:"allServers"`
-	ErrorServers       int `json:"errorServers"`
-	WorkingServers     int `json:"workingServers"`
-	WithWaf            int `json:"withWaf"`
-	AllCertificates    int `json:"allCertificates"`
-	OkDateCertificates int `json:"okDateCertificates"`
+	AllServers      int `json:"allServers"`
+	ErrorServers    int `json:"errorServers"`
+	WorkingServers  int `json:"workingServers"`
+	WithWaf         int `json:"withWaf"`
+	AllCertificates int `json:"allCertificates"`
+	OkCertificates  int `json:"okCertificates"`
 }
 
 type resourceInfo struct {

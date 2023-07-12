@@ -29,7 +29,6 @@
 import {defineComponent} from 'vue';
 import {Form, Field, ErrorMessage} from 'vee-validate';
 import *as httpClient from "../../httpClient";
-import axios from "axios";
 export default defineComponent( {
   name: "login",
   components: {
