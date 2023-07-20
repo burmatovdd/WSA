@@ -1,7 +1,9 @@
 <template>
   <Doughnut v-if="loaded"
             :options="chartOptions"
-            :data="chartData"/>
+            :data="chartData"
+  />
+  <div class="load" v-else>loading...</div>
 </template>
 
 <script lang="ts">
@@ -18,7 +20,16 @@ export default {
   data: () => ({
     arr: [],
     loaded: false,
-    chartData: null,
+    chartData: {
+      labels: ['Ok', 'No Ok'],
+      datasets: [
+        {
+          backgroundColor: ['#294486', '#DE3163'],
+          data: null,
+          borderWidth: 0,
+        }
+      ]
+    },
     chartOptions: {
       responsive: true,
       maintainAspectRatio: false,
@@ -28,33 +39,34 @@ export default {
           labels: {
             usePointStyle: true,
             pointStyle: 'circle',
-            padding: 50
+            paddingt: {
+              left: 50,
+              right: 50,
+            },
           }
         }
       }
     },
   }),
+
   async mounted() {
     this.loaded = false
     try {
       await getData().then(response => {
         this.arr = [response.okCertificates, response.noOkCertificates]
+        this.chartData.datasets[0].data = this.arr
+        this.loaded = true
       })
-      this.chartData = {
-        labels: ['Ok', 'No Ok'],
-        datasets: [
-          {
-            backgroundColor: ['#294486', '#DE3163'],
-            data: this.arr,
-            borderWidth: 0,
-          }
-        ]
-      }
-
-      this.loaded = true
     } catch (e) {
       console.error(e)
     }
   }
 }
 </script>
+<style lang="scss">
+.load{
+  width: 70px;
+  margin: auto;
+  margin-top: 40px;
+}
+</style>

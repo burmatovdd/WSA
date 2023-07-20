@@ -4,13 +4,11 @@ export async function getData() {
     let sendUrl = "http://localhost:8080/api/stats";
     let postInfo = httpClient.Get(sendUrl)
 
-    let okCertificates, noOkCertificates
-
-    postInfo.then(response => {
+    return httpClient.Get(sendUrl).then(response =>{
+        let okCertificates, noOkCertificates
         let resp = JSON.parse(response.data.body)
         okCertificates =  resp.okCertificates
         noOkCertificates = resp.allCertificates - okCertificates
+        return {okCertificates,noOkCertificates}
     })
-    await new Promise((resolve, reject) => setTimeout(resolve, 1000));
-    return {okCertificates,noOkCertificates}
 }

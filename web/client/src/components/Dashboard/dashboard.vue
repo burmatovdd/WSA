@@ -1,8 +1,8 @@
 <template>
-  <Sidebar/>
+  <header><Sidebar/></header>
   <div class="container container-dashboard">
     <div class="bottomCharts">
-      <div class="chart">
+      <div class="chart chart-report">
         <p class="chart-title">Отчет</p>
         <div class="chart-container">
           <div class="last-week">
@@ -56,9 +56,8 @@ export default defineComponent( {
   },
   mounted() {
     let sendUrl = "http://localhost:8080/api/get-week-stat";
-    let postInfo = httpClient.Get(sendUrl)
 
-    postInfo.then(response => {
+    httpClient.Get(sendUrl).then(response => {
       let resp = JSON.parse(response.data.body)
       this.lastWeekNoActive = resp.lastWeek.noResolve
       this.lastWeekWaf = resp.lastWeek.newWaf

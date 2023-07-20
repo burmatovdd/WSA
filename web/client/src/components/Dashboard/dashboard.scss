@@ -1,25 +1,29 @@
 .container{
   &-dashboard{
     align-items: center;
-    max-width: 1550px;
+    max-width: 1520px;
     width: 100%;
+    padding-right: 0;
+    padding-left: 150px;
   }
 }
 
 .chart{
-  width: 450px;
-  height: 500px;
+  aspect-ratio: 475/540;
   background-color: #1A2028;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   filter: drop-shadow(5px 10px 50px rgba(0, 0, 0, 0.25));
+  padding: 42px;
   &-container{
-    width: 250px;
+    canvas{
+      max-width: 100%;
+    }
   }
   &-title{
-    margin-top: 42px;
+    margin-top: 0;
     margin-bottom: 60px;
   }
 }
@@ -44,6 +48,73 @@
     margin-top: 40px;
     &_title{
       color: #DE3163;
+    }
+  }
+}
+
+@media(max-width: 1820px){
+  .container{
+    &-dashboard{
+      max-width: 1200px;
+    }
+  }
+  .bottomCharts{
+    max-width: 1200px;
+  }
+  .chart{
+    &-container{
+      height: 250px;
+    }
+    &-title{
+      margin-bottom: 0;
+    }
+  }
+  .last{
+    &-week{
+      text-align: center;
+    }
+  }
+  .current{
+    &-week{
+      text-align: center;
+    }
+  }
+}
+
+@media(max-width: 1500px){
+  .container{
+    &-dashboard{
+      max-width: 1000px;
+    }
+  }
+  .bottomCharts{
+    max-width: 900px;
+  }
+  .chart{
+    &-container{
+      height: 250px;
+    }
+  }
+}
+
+@media(max-width: 1200px){
+  .bottomCharts{
+    max-width: 600px;
+    flex-wrap: wrap;
+  }
+  .chart{
+    padding: 20px;
+    &-report{
+      margin-bottom: 20px;
+    }
+    &-container{
+      height: 180px;
+      font-size: 15px;
+    }
+  }
+  .current{
+    &-week{
+      margin-top: 0;
     }
   }
 }

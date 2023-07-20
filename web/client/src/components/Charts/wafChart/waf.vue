@@ -2,6 +2,7 @@
   <Doughnut v-if="loaded"
             :options="chartOptions"
             :data="chartData"/>
+  <div class="load" v-else>loading...</div>
 </template>
 
 <script lang="ts">
@@ -18,7 +19,16 @@ export default {
   data: () => ({
     arr: [],
     loaded: false,
-    chartData: null,
+    chartData: {
+      labels: ['Да', 'Нет'],
+      datasets: [
+        {
+          backgroundColor: ['#294486', '#DE3163'],
+          data: null,
+          borderWidth: 0,
+        }
+      ]
+    },
     chartOptions: {
       responsive: true,
       maintainAspectRatio: false,
@@ -34,27 +44,34 @@ export default {
       }
     },
   }),
+  methods: {
+    // checkSize(){
+    //   this.chartOptions.plugins.legend.labels.padding = 15
+    //   this.loaded = true
+    // }
+  },
+  // created() {
+  //   this.checkSize();
+  //   window.addEventListener('resize', this.checkSize)
+  // },
   async mounted() {
     this.loaded = false
     try {
-      await getData().then(response => {
+      getData().then(response => {
         this.arr = [response.withWaf, response.noWaf]
+        this.chartData.datasets[0].data = this.arr
+        this.loaded = true
       })
-      this.chartData = {
-        labels: ['Да', 'Нет'],
-        datasets: [
-          {
-            backgroundColor: ['#294486', '#DE3163'],
-            data: this.arr,
-            borderWidth: 0,
-          }
-        ]
-      }
-
-      this.loaded = true
     } catch (e) {
       console.error(e)
     }
   }
 }
 </script>
+<style lang="scss">
+.load{
+  width: 70px;
+  margin: auto;
+  margin-top: 40px;
+}
+</style>

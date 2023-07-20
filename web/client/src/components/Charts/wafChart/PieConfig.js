@@ -2,15 +2,12 @@ import * as httpClient from "../../../httpClient.js";
 
  export async function getData() {
     let sendUrl = "http://localhost:8080/api/stats";
-    let postInfo = httpClient.Get(sendUrl)
 
-     let withWaf, noWaf
-
-     postInfo.then(response => {
+    return  httpClient.Get(sendUrl).then( response => {
+        let withWaf, noWaf
         let resp = JSON.parse(response.data.body)
         withWaf = resp.withWaf
         noWaf = resp.allServers - withWaf
+        return {withWaf,noWaf}
     })
-     await new Promise((resolve, reject) => setTimeout(resolve, 1000));
-    return {withWaf,noWaf}
 }
