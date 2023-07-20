@@ -4,5 +4,9 @@
   <router-view></router-view>
 </template>
 
-<style></style>
-
+<style>
+  #app {
+    min-height: 100vh;
+    display: flex; 
+  }
+</style>
