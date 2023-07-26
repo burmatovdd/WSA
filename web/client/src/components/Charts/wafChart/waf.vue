@@ -1,8 +1,10 @@
 <template>
   <Doughnut
-            :options="chartOptions"
-            :data="chartData"/>
-
+      v-if="loaded"
+      :options="chartOptions"
+      :data="chartData"
+  />
+  <div class="load" v-else>loading...</div>
 </template>
 
 <script lang="ts">
@@ -20,11 +22,11 @@ export default {
     arr: [],
     loaded: false,
     chartData: {
-      labels: ['Да', 'Нет'],
+      labels: ['Ok', 'No Ok'],
       datasets: [
         {
           backgroundColor: ['#294486', '#DE3163'],
-          data: [11, 6],
+          data: null,
           borderWidth: 0,
         }
       ]
@@ -44,28 +46,19 @@ export default {
       }
     },
   }),
-  methods: {
-    // checkSize(){
-    //   this.chartOptions.plugins.legend.labels.padding = 15
-    //   this.loaded = true
-    // }
-  },
-  // created() {
-  //   this.checkSize();
-  //   window.addEventListener('resize', this.checkSize)
-  // },
-  // async mounted() {
-  //   this.loaded = false
-  //   try {
-  //     getData().then(response => {
-  //       this.arr = [response.withWaf, response.noWaf]
-  //       this.chartData.datasets[0].data = this.arr
-  //       this.loaded = true
-  //     })
-  //   } catch (e) {
-  //     console.error(e)
-  //   }
-  // }
+
+  async mounted() {
+    this.loaded = false
+    try {
+      await getData().then(response => {
+        this.arr = [response.withWaf, response.noWaf]
+        this.chartData.datasets[0].data = this.arr
+        this.loaded = true
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }
 </script>
 <style lang="scss">

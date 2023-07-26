@@ -1,9 +1,10 @@
 <template>
   <Doughnut
+      v-if="loaded"
     :options="chartOptions"
     :data="chartData"
   />
-  <!-- <div class="load" v-else>loading...</div> -->
+   <div class="load" v-else>loading...</div>
 </template>
 
 <script lang="ts">
@@ -25,7 +26,7 @@ export default {
       datasets: [
         {
           backgroundColor: ['#294486', '#DE3163'],
-          data: [10, 5],
+          data: null,
           borderWidth: 0,
         }
       ]
@@ -46,18 +47,18 @@ export default {
     },
   }),
 
-  // async mounted() {
-  //   this.loaded = false
-  //   try {
-  //     await getData().then(response => {
-  //       this.arr = [response.okCertificates, response.noOkCertificates]
-  //       this.chartData.datasets[0].data = this.arr
-  //       this.loaded = true
-  //     })
-  //   } catch (e) {
-  //     console.error(e)
-  //   }
-  // }
+  async mounted() {
+    this.loaded = false
+    try {
+      await getData().then(response => {
+        this.arr = [response.okCertificates, response.noOkCertificates]
+        this.chartData.datasets[0].data = this.arr
+        this.loaded = true
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }
 </script>
 <style lang="scss">

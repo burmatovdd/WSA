@@ -30,15 +30,15 @@
       1fr
       3rem;
     grid-template-areas:
-      '. .              .         .               . .          .'
-      '. .              .         .               . .          .'
-      '. dropDown--year .         dropDown--month . .          .'
-      '. .              .         .               . .          .'
-      '. activeRes      activeRes activeRes       . commonInfo .'
-      '. .              .         .               . .          .'
-      '. report         .         SSL             . WAF        .'
-      '. .              .         .               . .          .'
-      '. .              .         .               . .          .';
+      '. .              .         .               . .                .'
+      '. .              .         .               . .                .'
+      '. dropDown--year .         dropDown--month . checker          .'
+      '. .              .         .               . .                .'
+      '. activeRes      activeRes activeRes       . commonInfo       .'
+      '. .              .         .               . .                .'
+      '. report         .         SSL             . WAF              .'
+      '. .              .         .               . .                .'
+      '. .              .         .               . .                .';
   }
 }
 
@@ -54,8 +54,14 @@
   }
 }
 
+.check{
+  &--resource {
+    grid-area: checker;
+  }
+}
+
 .chart{
-  // aspect-ratio: 498/540;
+  aspect-ratio: 456/350;
   background-color: #1A2028;
   border-radius: 1rem;
   display: flex;
@@ -65,7 +71,7 @@
 
   &--activeRes {
     grid-area: activeRes;
-    // aspect-ratio: 996/540;
+     aspect-ratio: 996/350;
   }
 
   &--commonInfo {

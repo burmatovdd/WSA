@@ -11,8 +11,15 @@
       <option value="july" selected>Июль</option>
       <option value="june">Июнь</option>
     </select>
+    <button class="check--resource">Проверить ресурс</button>
     <div class='chart chart--activeRes'/>
-    <div class='chart chart--commonInfo'/>
+    <div class='chart chart--commonInfo'>
+      <div class="chart__title">Общая информация</div>
+      <div class="chart__info">
+        <div class="chart__info-text">Всего организаций : </div>
+        <div class="chart__info-text">Всего ресурсов : </div>
+      </div>
+    </div>
     <div class="chart chart--report">
       <h4 class="chart__title">Отчет</h4>
       <div class="chart__container">
