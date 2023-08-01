@@ -5,7 +5,8 @@
   padding: 3rem 8px;
   background-color: #1A2028;
   color: white;
-  overflow-x: hidden;
+  // overflow-x: hidden;
+  min-width: min-content;
 
   > *:not(script) {
     flex-grow: 1;
@@ -61,7 +62,7 @@
 }
 
 .chart{
-  aspect-ratio: 456/350;
+  // aspect-ratio: 456/350;
   background-color: #1A2028;
   border-radius: 1rem;
   display: flex;
@@ -71,7 +72,7 @@
 
   &--activeRes {
     grid-area: activeRes;
-     aspect-ratio: 996/350;
+    //  aspect-ratio: 996/350;
   }
 
   &--commonInfo {
