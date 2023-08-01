@@ -4,6 +4,7 @@ body {
   background-color: #31353F;
   color: white;
   font-family: Inter, sans-serif;
+  /* overflow: hidden; */
 }
 
 *,
@@ -26,6 +27,6 @@ body {
   flex-direction: column;
 }
 
-.main, .header {
+/* .main, .header {
   max-height: 100vh;
-}
+} */
