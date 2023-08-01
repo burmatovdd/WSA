@@ -3,15 +3,18 @@
     <Sidebar/>
   </header>
   <main class="main main--dashboard" :inert="openedModalDialog">
-    <select type="date" class="dropDown dropDown--date dropDown--year">
-      <option value="2023" selected>2023</option>
-      <option value="2022">2022</option>
-    </select>
-    <select type="date" class="dropDown dropDown--date dropDown--month">
-      <option value="july" selected>Июль</option>
-      <option value="june">Июнь</option>
-    </select>
-    <button class="check--resource" @click="toggleModalDialog">Проверить ресурс</button>
+    <form class='main__forhead form form--basic'>
+      <select type="date" class="form__dropDown form__dropDown--year">
+        <option value="2023" selected>2023</option>
+        <option value="2022">2022</option>
+      </select>
+      <select type="date" class="form__dropDown form__dropDown--month">
+        <option value="july" selected>Июль</option>
+        <option value="june">Июнь</option>
+      </select>
+      <input type='url' class="form__search" placeholder="Название ресурса">
+      <button type="button" class="form__submit" @click="toggleModalDialog">Проверить ресурс</button>
+    </form>
     <div class='chart chart--activeRes'/>
     <div class='chart chart--commonInfo'>
       <div class="chart__title">Общая информация</div>
