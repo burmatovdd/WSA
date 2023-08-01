@@ -13,12 +13,9 @@
 import Nav from "../Nav/nav.vue";
 import { defineComponent } from 'vue';
 export default defineComponent({
-  name: "sidebar",
+  name: "custom-sidebar",
   components: {
     Nav
-  },
-  data: function () {
-    return {};
   }
 })
 </script>

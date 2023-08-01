@@ -1,8 +1,8 @@
 <template>
-  <header class="header">
+  <header class="header" :inert="openedModalDialog">
     <Sidebar/>
   </header>
-  <main class="main main--dashboard">
+  <main class="main main--dashboard" :inert="openedModalDialog">
     <select type="date" class="dropDown dropDown--date dropDown--year">
       <option value="2023" selected>2023</option>
       <option value="2022">2022</option>
@@ -11,7 +11,7 @@
       <option value="july" selected>Июль</option>
       <option value="june">Июнь</option>
     </select>
-    <button class="check--resource">Проверить ресурс</button>
+    <button class="check--resource" @click="toggleModalDialog">Проверить ресурс</button>
     <div class='chart chart--activeRes'/>
     <div class='chart chart--commonInfo'>
       <div class="chart__title">Общая информация</div>
@@ -48,23 +48,33 @@
       </div>
     </div>
   </main>
+  <Modal
+    :open="openedModalDialog"
+    @close-modal-dialog="closeModalDialog"
+  >
+    <h4>Lorem ipsum dolor sit amet.</h4>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem, nesciunt!</p>
+  </Modal>
 </template>
 
 <script>
 import Sidebar from "../Sidebar/sidebar.vue";
 import SSLOk from "../Charts/sslOkChart/sslOk.vue";
 import Waf from "../Charts/wafChart/waf.vue";
-import *as httpClient from "../../httpClient";
+import Modal from '../../components/Modal/modal.vue';
+import * as httpClient from "../../httpClient";
 import { defineComponent } from 'vue';
 export default defineComponent({
   name: "dashboard.vue",
   components: {
     Sidebar,
     SSLOk,
-    Waf
+    Waf,
+    Modal
   },
   data: function () {
     return {
+      openedModalDialog: false,
       lastWeekNoActive: null,
       lastWeekWaf: null,
       currentWeekNoActive: null,
@@ -81,8 +91,19 @@ export default defineComponent({
       this.currentWeekNoActive = resp.currentWeek.noResolve
       this.currentWeekWaf = resp.currentWeek.newWaf
     })
+  },
+  methods: {
+    toggleModalDialog() {
+      this.$data.openedModalDialog = !this.$data.openedModalDialog;
+    },
+    openModalDialog() {
+      this.$data.openedModalDialog = true;
+    },
+    closeModalDialog() {
+      this.$data.openedModalDialog = false;
+    }
   }
-})
+});
 </script>
 
 <style lang="scss">

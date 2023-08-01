@@ -32,7 +32,7 @@
 <script>
 import { defineComponent } from 'vue';
 export default defineComponent({
-  name: "nav",
+  name: "custom-nav",
   data: function () {
     return {};
   },
