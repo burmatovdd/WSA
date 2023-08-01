@@ -16,6 +16,10 @@
 .main{
   flex-grow: 1;
 
+  &__forhead {
+    grid-area: main__forhead;
+  }
+
   &--dashboard {
     display: grid;
     grid-auto-flow: column;
@@ -31,33 +35,33 @@
       1fr
       3rem;
     grid-template-areas:
-      '. .              .         .               . .                .'
-      '. .              .         .               . .                .'
-      '. dropDown--year .         dropDown--month . checker          .'
-      '. .              .         .               . .                .'
-      '. activeRes      activeRes activeRes       . commonInfo       .'
-      '. .              .         .               . .                .'
-      '. report         .         SSL             . WAF              .'
-      '. .              .         .               . .                .'
-      '. .              .         .               . .                .';
+      '. .              .             .               .             .                .'
+      '. .              .             .               .             .                .'
+      '. main__forhead  main__forhead main__forhead   main__forhead main__forhead    .'
+      '. .              .             .               .             .                .'
+      '. activeRes      activeRes     activeRes       .             commonInfo       .'
+      '. .              .             .               .             .                .'
+      '. report         .             SSL             .             WAF              .'
+      '. .              .             .               .             .                .'
+      '. .              .             .               .             .                .';
   }
 }
 
-.dropDown {
-  padding: 0.5rem;
+.form {
+  $form: &;
 
-  &--year {
-    grid-area: dropDown--year;
+  &__dropDown {
+    padding: .5rem 1rem;
   }
 
-  &--month {
-    grid-area: dropDown--month;
-  }
-}
-
-.check{
-  &--resource {
-    grid-area: checker;
+  &--basic {
+    display: flex;
+    column-gap: 2rem;
+    #{$form} {
+      &__search {
+        margin-inline-start: auto;
+      }
+    }
   }
 }
 
