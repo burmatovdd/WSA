@@ -1,14 +1,16 @@
 <template>
-  <Doughnut v-if="loaded"
-            :options="chartOptions"
-            :data="chartData"/>
+  <Doughnut
+      v-if="loaded"
+      :options="chartOptions"
+      :data="chartData"
+  />
   <div class="load" v-else>loading...</div>
 </template>
 
 <script lang="ts">
-import {Chart as ChartJS, ArcElement, Tooltip, Legend, Chart} from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Chart } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
-import {getData} from "./PieConfig.js";
+import { getData } from "./PieConfig.js";
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 export default {
@@ -20,7 +22,7 @@ export default {
     arr: [],
     loaded: false,
     chartData: {
-      labels: ['Да', 'Нет'],
+      labels: ['Ok', 'No Ok'],
       datasets: [
         {
           backgroundColor: ['#294486', '#DE3163'],
@@ -38,26 +40,17 @@ export default {
           labels: {
             usePointStyle: true,
             pointStyle: 'circle',
-            padding: 50
+            padding: 8
           }
         }
       }
     },
   }),
-  methods: {
-    // checkSize(){
-    //   this.chartOptions.plugins.legend.labels.padding = 15
-    //   this.loaded = true
-    // }
-  },
-  // created() {
-  //   this.checkSize();
-  //   window.addEventListener('resize', this.checkSize)
-  // },
+
   async mounted() {
     this.loaded = false
     try {
-      getData().then(response => {
+      await getData().then(response => {
         this.arr = [response.withWaf, response.noWaf]
         this.chartData.datasets[0].data = this.arr
         this.loaded = true
@@ -69,7 +62,7 @@ export default {
 }
 </script>
 <style lang="scss">
-.load{
+.load {
   width: 70px;
   margin: auto;
   margin-top: 40px;

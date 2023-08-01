@@ -1,15 +1,16 @@
 <template>
-  <Doughnut v-if="loaded"
-            :options="chartOptions"
-            :data="chartData"
+  <Doughnut
+      v-if="loaded"
+    :options="chartOptions"
+    :data="chartData"
   />
-  <div class="load" v-else>loading...</div>
+   <div class="load" v-else>loading...</div>
 </template>
 
 <script lang="ts">
-import {Chart as ChartJS, ArcElement, Tooltip, Legend, Chart} from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Chart } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
-import {getData} from "./PieConfig.js";
+import { getData } from "./PieConfig.js";
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 export default {
@@ -39,10 +40,7 @@ export default {
           labels: {
             usePointStyle: true,
             pointStyle: 'circle',
-            paddingt: {
-              left: 50,
-              right: 50,
-            },
+            padding: 8
           }
         }
       }
@@ -64,7 +62,7 @@ export default {
 }
 </script>
 <style lang="scss">
-.load{
+.load {
   width: 70px;
   margin: auto;
   margin-top: 40px;

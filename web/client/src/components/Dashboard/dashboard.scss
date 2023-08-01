@@ -1,53 +1,130 @@
-.container{
-  &-dashboard{
-    align-items: center;
-    max-width: 1520px;
-    width: 100%;
-    padding-right: 0;
-    padding-left: 150px;
+.header {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 200px;
+  padding: 3rem 8px;
+  background-color: #1A2028;
+  color: white;
+  // overflow-x: hidden;
+  min-width: min-content;
+
+  > *:not(script) {
+    flex-grow: 1;
+  }
+}
+
+.main{
+  flex-grow: 1;
+
+  &--dashboard {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: 3rem 1fr 3rem 1fr 3rem 1fr 3rem;
+    grid-template-rows:
+      3rem
+      1fr
+      auto
+      3rem
+      auto
+      3rem
+      auto
+      1fr
+      3rem;
+    grid-template-areas:
+      '. .              .         .               . .                .'
+      '. .              .         .               . .                .'
+      '. dropDown--year .         dropDown--month . checker          .'
+      '. .              .         .               . .                .'
+      '. activeRes      activeRes activeRes       . commonInfo       .'
+      '. .              .         .               . .                .'
+      '. report         .         SSL             . WAF              .'
+      '. .              .         .               . .                .'
+      '. .              .         .               . .                .';
+  }
+}
+
+.dropDown {
+  padding: 0.5rem;
+
+  &--year {
+    grid-area: dropDown--year;
+  }
+
+  &--month {
+    grid-area: dropDown--month;
+  }
+}
+
+.check{
+  &--resource {
+    grid-area: checker;
   }
 }
 
 .chart{
-  aspect-ratio: 475/540;
+  // aspect-ratio: 456/350;
   background-color: #1A2028;
-  border-radius: 10px;
+  border-radius: 1rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  filter: drop-shadow(5px 10px 50px rgba(0, 0, 0, 0.25));
-  padding: 42px;
-  &-container{
+  filter: drop-shadow(5px 1rem 3rem rgba(0, 0, 0, 0.25));
+  padding: 2.5rem;
+
+  &--activeRes {
+    grid-area: activeRes;
+    //  aspect-ratio: 996/350;
+  }
+
+  &--commonInfo {
+    grid-area: commonInfo;
+  }
+
+  &--report {
+    grid-area: report;
+  }
+
+  &--SSL {
+    grid-area: SSL;
+  }
+
+  &--WAF {
+    grid-area: WAF;
+  }
+
+  &__container{
     canvas{
       max-width: 100%;
     }
   }
-  &-title{
+  &__title{
+    text-align: center;
     margin-top: 0;
-    margin-bottom: 60px;
+    margin-bottom: 2rem;
   }
-}
 
-.bottomCharts{
-  max-width: 1550px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-}
+  &__week {
+    $week: &;
 
-.last{
-  &-week{
-    &_title{
-      color: #DE3163;
+    &-title {
+      margin-top: 0;
     }
-  }
-}
 
-.current{
-  &-week{
-    margin-top: 40px;
-    &_title{
-      color: #DE3163;
+    &--last {
+      #{$week} {
+        &-title {
+          color: #DE3163;
+        }
+      }
+    }
+
+    &--current {
+      #{$week} {
+        margin-top: 2.5rem;
+
+        &-title {
+          color: #DE3163;
+        }
+      }
     }
   }
 }
@@ -63,7 +140,7 @@
   }
   .chart{
     &-container{
-      height: 250px;
+      // height: 23rem;
     }
     &-title{
       margin-bottom: 0;
@@ -92,7 +169,7 @@
   }
   .chart{
     &-container{
-      height: 250px;
+      // height: 23rem;
     }
   }
 }
@@ -108,7 +185,7 @@
       margin-bottom: 20px;
     }
     &-container{
-      height: 180px;
+      // height: 180px;
       font-size: 15px;
     }
   }
