@@ -214,8 +214,8 @@ func (service *PgService) AddResource(c *gin.Context) {
 	var resource resource
 	err := c.BindJSON(&resource)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
 		})
 		return
 	}
@@ -236,8 +236,9 @@ func (service *PgService) AddResource(c *gin.Context) {
 		return
 	}
 
-	args = []any{resource.Url, resource.Ip, userId, ownId}
-	res := helpers.Exec("INSERT INTO url (nameurl, ip,idusd,idowner) VALUES ($1,$2,$3,$4)", args, serverConf.DefaultConfig)
+	args = []any{resource.Url, userId, ownId}
+	fmt.Println(args)
+	res := helpers.Exec("INSERT INTO url (nameurl,idusd,idowner) VALUES ($1,$2,$3)", args, serverConf.DefaultConfig)
 	if !res {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -246,8 +247,8 @@ func (service *PgService) AddResource(c *gin.Context) {
 		return
 	}
 
-	args = []any{resource.Url, resource.Ip}
-	res = helpers.Exec("INSERT INTO resource (nameurl, ipfirst) VALUES ($1,$2)", args, serverConf.DefaultConfig)
+	args = []any{resource.Url}
+	res = helpers.Exec("INSERT INTO resource (nameurl) VALUES ($1)", args, serverConf.DefaultConfig)
 	if !res {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -570,67 +571,71 @@ func (service *PgService) Login(c *gin.Context) {
 	})
 }
 
-//
-//func counterOwners(query string) int {
-//	rows, err := helpers.Select(query, nil, serverConf.DefaultConfig)
-//	defer rows.Close()
-//	if err != nil {
-//		return 0
-//	}
-//	k := 0
-//
-//	for rows.Next() {
-//		p := own{}
-//		err = rows.Scan(
-//			&p.ID,
-//			&p.NameOwn,
-//			&p.ShortName,
-//		)
-//		k++
-//	}
-//	return k
-//}
-//
-//func counterUrls(query string) int {
-//	rows, err := helpers.Select(query, nil, serverConf.DefaultConfig)
-//	defer rows.Close()
-//	if err != nil {
-//		return 0
-//	}
-//	k := 1
-//
-//	arr := []resourceInfo{}
-//
-//	for rows.Next() {
-//		p := resourceInfo{}
-//		err = rows.Scan(
-//			&p.ID,
-//			&p.URL,
-//			&p.IP,
-//			&p.Err,
-//			&p.Waf,
-//			&p.IDUser,
-//			&p.IDOwner,
-//			&p.CommonName,
-//			&p.Issuer,
-//			&p.EndDate)
-//		fmt.Println("k: ", k)
-//	}
-//	return k
-//}
-//
-//func (service *PgService) CounterCommonInfo(c *gin.Context) {
-//	owners := counterOwners("select count(*) from owners")
-//	if owners == 0 {
-//		c.JSON(http.StatusBadRequest, gin.H{
-//			"code": http.StatusBadRequest,
-//		})
-//		return
-//	}
-//	urls := counterUrls("select count(*) from url")
-//	arr := []int{owners, urls}
-//	c.JSON(http.StatusOK, gin.H{
-//		"code": http.StatusOK,
-//		"body": arr,
-//	})
-//}
+func (service *PgService) CheckResource(c *gin.Context) {
+	var name string
+	err := c.BindJSON(&name)
+	if err != nil {
+		fmt.Println("err: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
+		return
+	}
+	args := []any{name}
+
+	if checkResourceInDB("select * from resource where nameurl = $1", args) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"body": false,
+		})
+		return
+	}
+
+	rows, err := helpers.Select("select * from url where nameurl = $1", args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	if err != nil {
+		fmt.Println("err")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	resourceStr := requestBody{}
+
+	for rows.Next() {
+		p := resourceInfo{}
+		err := rows.Scan(
+			&p.ID,
+			&p.URL,
+			&p.IP,
+			&p.Err,
+			&p.Waf,
+			&p.IDUser,
+			&p.IDOwner,
+			&p.CommonName,
+			&p.Issuer,
+			&p.EndDate)
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		resourceStr = requestBody{
+			resourceReq{
+				URL:     p.URL,
+				Status:  check(p.Err.String),
+				WAF:     check(p.Waf.String),
+				SSL:     check(p.Issuer.String),
+				DateEnd: p.EndDate.String,
+			},
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": string(toJson(resourceStr)),
+	})
+}

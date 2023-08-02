@@ -3,6 +3,7 @@ package resource
 import (
 	"WAF_Analytics/configs/serverConf"
 	"WAF_Analytics/internal/server/postgresql/helpers"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -71,7 +72,7 @@ func checkResourceInDB(query string, args []any) bool {
 	return true
 }
 
-func getOwnerId(query string, args []any) int {
+func getOwnerId(query string, args []any) any {
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
@@ -97,12 +98,12 @@ func getOwnerId(query string, args []any) int {
 		}
 	}
 	if owner.NameOwn == "" {
-		return 0
+		return sql.NullInt32{}
 	}
 	return owner.ID
 }
 
-func getUserId(query string, args []any) int {
+func getUserId(query string, args []any) any {
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
@@ -129,7 +130,7 @@ func getUserId(query string, args []any) int {
 		}
 	}
 	if us.Email == "" {
-		return 0
+		return sql.NullInt32{}
 	}
 	return us.ID
 }
@@ -273,16 +274,16 @@ func findCurrentWeek(today time.Time) (monday, friday time.Time) {
 }
 
 func counter(c *gin.Context, args []any) (noResolve, newWaf int) {
-	res, _ := getInfoAboutResource(c, "select * from resource where datenores between $1 and $2", args)
+	res, _ := getInfoFromTableResource(c, "select * from resource where datenores between $1 and $2", args)
 	noResolve = len(res)
 
-	res, _ = getInfoAboutResource(c, "select * from resource where wafdate between $1 and $2", args)
+	res, _ = getInfoFromTableResource(c, "select * from resource where wafdate between $1 and $2", args)
 	newWaf = len(res)
 
 	return noResolve, newWaf
 }
 
-func getInfoAboutResource(c *gin.Context, query string, args []any) ([]resourceBody, error) {
+func getInfoFromTableResource(c *gin.Context, query string, args []any) ([]resourceBody, error) {
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 

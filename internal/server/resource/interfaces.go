@@ -21,5 +21,6 @@ type Service interface {
 	UpdateResource(c *gin.Context)
 	GetWeekStat(c *gin.Context)
 	Login(c *gin.Context)
+	CheckResource(c *gin.Context)
 	//CounterCommonInfo(c *gin.Context)
 }

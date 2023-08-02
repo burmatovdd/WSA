@@ -74,11 +74,9 @@ type owner struct {
 }
 
 type resource struct {
-	Url      string `json:"url"`
-	Ip       string `json:"ip"`
-	Employee string `json:"employee"`
-	Email    string `json:"email"`
-	Owner    string `json:"owner"`
+	Url   string `json:"url,omitempty"`
+	Email string `json:"email,omitempty"`
+	Owner string `json:"owner,omitempty"`
 }
 
 type user struct {
