@@ -1,0 +1,49 @@
+.res{
+  &__content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  &__name{
+    text-align: center;
+  }
+  &__info{
+    display: flex;
+    &--item{
+      padding: 0 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  &__date{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  &__user{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  &__delete{
+    background-color: #DE3163;
+    border: none;
+    color: white;
+    padding: .75rem 2.5rem;
+    border-radius: .5rem;
+    font-size: 15px;
+  }
+}
+
+.date{
+  &__title{
+    margin-bottom: 0;
+  }
+}
+
+.user{
+  &__title{
+    margin-bottom: 0;
+  }
+}

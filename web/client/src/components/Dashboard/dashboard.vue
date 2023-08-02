@@ -12,8 +12,16 @@
         <option value="july" selected>Июль</option>
         <option value="june">Июнь</option>
       </select>
-      <input type='url' class="form__search" placeholder="Название ресурса">
-      <button type="button" class="form__submit" @click="toggleModalDialog">Проверить ресурс</button>
+      <Form class="form__check" v-slot="{ meta }">
+        <ErrorMessage name="login" class="error-message"/>
+        <Field name="search"
+               type="url"
+               class="form__search"
+               placeholder="Название ресурса"
+               v-model="resourceName"
+               :rules="validateLogin"/>
+        <button type="button" class="form__submit" @click="toggleModalDialog" :disabled="!meta.valid">Проверить ресурс</button>
+      </Form>
     </form>
     <div class='chart chart--activeRes'/>
     <div class='chart chart--commonInfo'>
@@ -25,7 +33,7 @@
     </div>
     <div class="chart chart--report">
       <h4 class="chart__title">Отчет</h4>
-      <div class="chart__container">
+      <div class="chart__container chart__container--week">
         <div class="chart__week chart__week--last">
           <h5 class="chart__week-title">За прошлую неделю</h5>
           <p class="chart__week-text">Неактивные : {{ lastWeekNoActive }}</p>
@@ -53,10 +61,15 @@
   </main>
   <Modal
     :open="openedModalDialog"
-    @close-modal-dialog="closeModalDialog"
-  >
-    <h4>Lorem ipsum dolor sit amet.</h4>
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem, nesciunt!</p>
+    @close-modal-dialog="closeModalDialog">
+    <div v-if="!find" class="modal__content">
+      <h4 class="modal__title">Проверка ресурса</h4>
+      <AddResource :resource="resourceName"/>
+    </div>
+    <div v-else class="modal__content">
+      <h4 class="modal__title">Проверка ресурса</h4>
+      <ResInfo :resource="resourceInfo"/>
+    </div>
   </Modal>
 </template>
 
@@ -65,23 +78,43 @@ import Sidebar from "../Sidebar/sidebar.vue";
 import SSLOk from "../Charts/sslOkChart/sslOk.vue";
 import Waf from "../Charts/wafChart/waf.vue";
 import Modal from '../../components/Modal/modal.vue';
+import AddResource from "../AddResource/addResource.vue";
+import ResInfo from "../ResInfo/resInfo.vue";
+import {Form, Field, ErrorMessage} from 'vee-validate';
 import * as httpClient from "../../httpClient";
 import { defineComponent } from 'vue';
+import {getData} from "../Charts/sslOkChart/PieConfig.js";
 export default defineComponent({
   name: "dashboard.vue",
   components: {
     Sidebar,
     SSLOk,
     Waf,
-    Modal
+    Modal,
+    AddResource,
+    ResInfo,
+    Form,
+    Field,
+    ErrorMessage
   },
   data: function () {
     return {
       openedModalDialog: false,
+      find: false,
+      resourceName: null,
+      resourceInfo: {
+        resName: null,
+        status: false,
+        waf: false,
+        ssl: false,
+        date: null,
+        user: null,
+      },
       lastWeekNoActive: null,
       lastWeekWaf: null,
       currentWeekNoActive: null,
       currentWeekWaf: null,
+      isActive: false,
     }
   },
   mounted() {
@@ -96,8 +129,38 @@ export default defineComponent({
     })
   },
   methods: {
+    validateLogin(value) {
+      this.isActive = false
+      // if the field is empty
+      if (!value) {
+        return null;
+      }
+      // All is good
+      return true;
+    },
     toggleModalDialog() {
+
       this.$data.openedModalDialog = !this.$data.openedModalDialog;
+      let sendUrl = "http://localhost:8080/api/check-resource";
+
+      // let today = Date.now()
+      // console.info(today)
+      // admin.parki.mosreg.ru
+
+      return httpClient.Post(sendUrl,this.$data.resourceName).then(response =>{
+        let resp = JSON.parse(response.data.body)
+        this.resourceInfo.resName = resp.resource.URL
+        this.resourceInfo.status = resp.resource.Status
+        this.resourceInfo.waf = resp.resource.WAF
+        this.resourceInfo.ssl = resp.resource.SSL
+        this.resourceInfo.date = resp.resource.DateEnd
+        this.resourceInfo.user = resp.resource.Email
+        this.$data.find = true
+      }).catch(error => {
+        if (error.response.data.code === 500){
+          this.$data.find = false
+        }
+      })
     },
     openModalDialog() {
       this.$data.openedModalDialog = true;

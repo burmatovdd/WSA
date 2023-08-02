@@ -7,7 +7,7 @@
   >
     <div class='dialog__backdrop' @click="$emit('closeModalDialog')" />
     <div class='dialog__container'>
-      <button class="dialog__close" @click="$emit('closeModalDialog')">Close modal dialog</button>
+      <button class="dialog__close" @click="$emit('closeModalDialog')">Close button</button>
       <slot>
         <pre>Fallback content</pre>
       </slot>
@@ -67,6 +67,7 @@ export default defineComponent({
     max-width: 600px;
     padding: 2.5rem;
     background-color: #1A2028;
+    border-radius: 10px;
   }
 
   &__close {
@@ -78,6 +79,10 @@ export default defineComponent({
     position: absolute;
     right: 1rem;
     top: 1rem;
+    background-image: url("../../img/close.svg") ;
+    background-color: rgba(28,28,28,0);
+    border: none;
+    cursor: pointer;
   }
 
   &--open {

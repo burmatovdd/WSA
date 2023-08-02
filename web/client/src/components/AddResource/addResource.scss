@@ -1,0 +1,44 @@
+.res{
+  &__content{
+    display: flex;
+    flex-direction: column;
+  }
+  &__button{
+    padding: .5rem 2.5rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #DE3163;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+  }
+}
+
+.add{
+  &__form{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.form{
+  &__input{
+    margin-bottom: 1.5rem;
+    padding: .5rem 2rem;
+    border: none;
+    border-radius: .25rem;
+    background-color: rgba(255, 255, 255, 0.40);
+    color: white;
+    font-size: 15px;
+  }
+  &__text{
+    margin-top: 0;
+  }
+}
+
+.content{
+  &__text{
+    font-size: 18px;
+  }
+}
