@@ -33,6 +33,7 @@
     padding: .75rem 2.5rem;
     border-radius: .5rem;
     font-size: 15px;
+    cursor: pointer;
   }
 }
 
@@ -45,5 +46,58 @@
 .user{
   &__title{
     margin-bottom: 0;
+  }
+  &__content{
+    display: flex;
+    justify-content: space-between;
+    &--edit{
+      background-color: #1A2028;
+      border: none;
+      cursor: pointer;
+      padding-left: 1rem;
+    }
+  }
+  &__edit{
+    &--content{
+      display: flex;
+      padding: 1rem 0 2rem;
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+}
+
+.content{
+  &__input{
+    border: none;
+    border-radius: .5rem;
+    padding: .5rem 1.5rem;
+    margin-right: 1rem;
+    background-color: #31353F;
+    color: white;
+  }
+  &__agree{
+    border: none;
+    cursor: pointer;
+    background-color: #DE3163;
+    border-radius: .5rem;
+    color: white;
+    padding: .5rem 1rem;
+  }
+}
+
+.delete{
+  &__result{
+    &--text{
+      color: #DE3163;
+      font-weight: bold;
+    }
+  }
+}
+
+.comment{
+  &__text{
+    margin: 0;
+    padding-bottom: .5rem;
   }
 }

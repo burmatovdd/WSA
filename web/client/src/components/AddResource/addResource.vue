@@ -13,10 +13,14 @@
     <Field name="owner"
            type="text"
            class="form__input"
-           placeholder="ExampleInc"
+           placeholder="Введите организацию"
            v-model="owner"
            :rules="validateInput"/>
     <p class="form__text">Если данные не известны, поставьте прочерк(-)</p>
+    <div class="add__result" v-if="isOpen">
+      <p class="add__result--text" v-if="!statusOk">Ресурс добавлен!</p>
+      <p class="add__result--text" v-else>Ошибка!</p>
+    </div>
     <button type="button" class="res__button" @click="onSubmit" :disabled="!meta.valid">Добавить</button>
   </Form>
 </div>
@@ -42,29 +46,25 @@ export default defineComponent({
   data: function (){
     return {
       user: null,
-      owner: null
+      owner: null,
+      isOpen: false,
+      statusOk: false,
     }
   },
   methods: {
     onSubmit(){
       let sendUrl = "http://localhost:8080/api/add-resource";
 
-      console.info(JSON.stringify({
-        url: this.$props.resource,
-        email: this.$data.user,
-        owner: this.$data.owner
-      }))
-
       return httpClient.Post(sendUrl,{
         url: this.$props.resource,
         email: this.$data.user,
         owner: this.$data.owner
       }).then(response =>{
-        let resp = JSON.parse(response.data.body)
-        console.info(resp)
-      }).catch(error => {
+        this.$data.isOpen = true
+      })
+        .catch(error => {
         if (error.response.data.code === 500){
-          console.log("something is going wrong")
+          this.$data.statusOk = false
         }
       })
     },

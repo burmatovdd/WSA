@@ -146,16 +146,31 @@ export default defineComponent({
       // let today = Date.now()
       // console.info(today)
       // admin.parki.mosreg.ru
+      // 2018.llo.zdravmo.mosreg.ru
 
       return httpClient.Post(sendUrl,this.$data.resourceName).then(response =>{
         let resp = JSON.parse(response.data.body)
+
+        if (resp.resource.DateEnd === "--------------------" ||resp.resource.DateEnd === "" ){
+          this.resourceInfo.date = "undefined"
+        }
+        else{
+          this.resourceInfo.date = resp.resource.DateEnd
+        }
+
+        if (resp.resource.Email === ""){
+          this.resourceInfo.user = "undefined"
+        }
+        else{
+          this.resourceInfo.user = resp.resource.Email
+        }
+
         this.resourceInfo.resName = resp.resource.URL
         this.resourceInfo.status = resp.resource.Status
         this.resourceInfo.waf = resp.resource.WAF
         this.resourceInfo.ssl = resp.resource.SSL
-        this.resourceInfo.date = resp.resource.DateEnd
-        this.resourceInfo.user = resp.resource.Email
         this.$data.find = true
+
       }).catch(error => {
         if (error.response.data.code === 500){
           this.$data.find = false
