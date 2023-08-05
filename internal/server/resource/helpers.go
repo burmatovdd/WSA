@@ -23,7 +23,8 @@ func toJson(variable any) []byte {
 func check(variable string) bool {
 	if variable == "Error resolve and not curl" ||
 		variable == "Not Waf" ||
-		variable == "Error certificate" {
+		variable == "Error certificate" ||
+		variable == "" {
 		return false
 	} else {
 		return true
@@ -104,11 +105,12 @@ func getOwnerId(query string, args []any) any {
 }
 
 func getUserId(query string, args []any) any {
+
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
 		log.Fatalln("error: ", err)
-		return 0
+		return sql.NullInt32{}.Valid
 	}
 
 	us := user{}
@@ -129,8 +131,10 @@ func getUserId(query string, args []any) any {
 			p.FIO,
 		}
 	}
+
 	if us.Email == "" {
-		return sql.NullInt32{}
+
+		return sql.NullInt32{}.Valid
 	}
 	return us.ID
 }

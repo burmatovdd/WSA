@@ -100,7 +100,7 @@ func (service *PgService) GetResStat(c *gin.Context) {
 
 		resourceStr = requestBody{
 			resourceReq{
-				URL:     p.URL,
+				URL:     p.URL.String,
 				Status:  check(p.Err.String),
 				WAF:     check(p.Waf.String),
 				SSL:     check(p.Issuer.String),
@@ -325,7 +325,7 @@ func (service *PgService) FindResourceByOwner(c *gin.Context) {
 		}
 		args = []any{p.IDUser.Int64}
 		res = resourceByOwner{
-			Url:      p.URL,
+			Url:      p.URL.String,
 			Error:    check(p.Err.String),
 			Waf:      check(p.Waf.String),
 			DateCert: p.EndDate.String,
@@ -491,8 +491,10 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 	}
 
 	args := []any{resource.Email}
+
 	userId := getUserId("select * from usdata where emailus = $1", args)
-	if userId == 0 {
+
+	if userId == false {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"body": false,
@@ -625,11 +627,12 @@ func (service *PgService) CheckResource(c *gin.Context) {
 
 		resourceStr = requestBody{
 			resourceReq{
-				URL:     p.URL,
+				URL:     p.URL.String,
 				Status:  check(p.Err.String),
 				WAF:     check(p.Waf.String),
 				SSL:     check(p.Issuer.String),
 				DateEnd: p.EndDate.String,
+				Email:   getUserEmail("select * from usdata where idusd = $1", []any{p.IDUser}),
 			},
 		}
 	}

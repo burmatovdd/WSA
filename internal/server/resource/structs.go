@@ -33,13 +33,13 @@ type reqStat struct {
 
 type resourceInfo struct {
 	ID         int
-	URL        string
-	IP         string
+	URL        sql.NullString
+	IP         sql.NullString
 	Err        sql.NullString
 	Waf        sql.NullString
 	IDUser     sql.NullInt64
 	IDOwner    sql.NullInt64
-	CommonName string
+	CommonName sql.NullString
 	Issuer     sql.NullString
 	EndDate    sql.NullString
 }
