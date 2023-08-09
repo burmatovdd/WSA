@@ -1,7 +1,7 @@
 import * as httpClient from "../../../httpClient.js";
 
  export async function getData() {
-    let sendUrl = "http://localhost:8080/api/stats";
+    let sendUrl = "http://localhost:8080/api/statistic";
 
     return  httpClient.Get(sendUrl).then( response => {
         let withWaf, noWaf

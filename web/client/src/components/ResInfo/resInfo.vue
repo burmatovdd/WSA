@@ -108,9 +108,7 @@ export default defineComponent({
     deleteResource: function(){
       let sendUrl = "http://localhost:8080/api/delete-resource";
 
-      return httpClient.Post(sendUrl,{
-        name: this.$props.resource.resName
-      }).then(response =>{
+      return httpClient.Post(sendUrl,this.$props.resource.resName).then(response =>{
         this.$data.isOpen = true
         this.$data.statusOk = true
       })
@@ -128,7 +126,7 @@ export default defineComponent({
       let sendUrl = "http://localhost:8080/api/update-resource";
 
       return httpClient.Post(sendUrl,{
-        name: this.$props.resource.resName,
+        url: this.$props.resource.resName,
         email: this.$data.user
       }).then(response =>{
         this.$data.isEdit = false

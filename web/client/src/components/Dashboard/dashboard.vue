@@ -118,14 +118,15 @@ export default defineComponent({
     }
   },
   mounted() {
-    let sendUrl = "http://localhost:8080/api/get-week-stat";
+    let sendUrl = "http://localhost:8080/api/week-statistic";
 
     httpClient.Get(sendUrl).then(response => {
       let resp = JSON.parse(response.data.body)
-      this.lastWeekNoActive = resp.lastWeek.noResolve
-      this.lastWeekWaf = resp.lastWeek.newWaf
-      this.currentWeekNoActive = resp.currentWeek.noResolve
-      this.currentWeekWaf = resp.currentWeek.newWaf
+      console.info(resp)
+      this.lastWeekNoActive = resp.last.no_resolve
+      this.lastWeekWaf = resp.last.new_waf
+      this.currentWeekNoActive = resp.current.no_resolve
+      this.currentWeekWaf = resp.current.new_waf
     })
   },
   methods: {
@@ -151,24 +152,22 @@ export default defineComponent({
       return httpClient.Post(sendUrl,this.$data.resourceName).then(response =>{
         let resp = JSON.parse(response.data.body)
 
-        if (resp.resource.DateEnd === "--------------------" ||resp.resource.DateEnd === "" ){
+        if (resp.DateEnd === "--------------------" || resp.DateEnd === "" ){
           this.resourceInfo.date = "undefined"
         }
         else{
-          this.resourceInfo.date = resp.resource.DateEnd
+          this.resourceInfo.date = resp.DateEnd
         }
-
-        if (resp.resource.Email === ""){
+        if (resp.Email === ""){
           this.resourceInfo.user = "undefined"
         }
         else{
-          this.resourceInfo.user = resp.resource.Email
+          this.resourceInfo.user = resp.Email
         }
-
-        this.resourceInfo.resName = resp.resource.URL
-        this.resourceInfo.status = resp.resource.Status
-        this.resourceInfo.waf = resp.resource.WAF
-        this.resourceInfo.ssl = resp.resource.SSL
+        this.resourceInfo.resName = resp.URL
+        this.resourceInfo.status = resp.Status
+        this.resourceInfo.waf = resp.WAF
+        this.resourceInfo.ssl = resp.SSL
         this.$data.find = true
 
       }).catch(error => {
