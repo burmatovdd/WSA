@@ -6,116 +6,180 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
-	"net/http"
 	"time"
 )
 
-func toJson(variable any) []byte {
-	jsonStr, err := json.Marshal(variable)
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
+func checkUserInDB(query string, args []any) bool {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	us := UserAuth{}
+
+	for rows.Next() {
+		p := UserAuth{}
+		err = rows.Scan(
+			&p.ID,
+			&p.Email,
+			&p.Password,
+			&p.Access,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		us = UserAuth{
+			p.ID,
+			p.Email,
+			p.Password,
+			p.Access,
+		}
 	}
-	return jsonStr
+	if us.Email == "" {
+		return false
+	}
+	return true
 }
 
-func check(variable string) bool {
-	if variable == "Error resolve and not curl" ||
-		variable == "Not Waf" ||
-		variable == "Error certificate" ||
-		variable == "" {
+func checkResourceInDB(args []any) bool {
+	rows, err := helpers.Select("select * from resource where nameurl = $1", args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	res := UrlTable{}
+
+	for rows.Next() {
+		p := UrlTable{}
+		err = rows.Scan(
+			&p.ID,
+			&p.NameURL,
+			&p.IpFirst,
+			&p.IpNow,
+			&p.DateFirst,
+			&p.Status,
+			&p.DateNoRes,
+			&p.WafDate,
+			&p.WafIp,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		res = UrlTable{
+			p.ID,
+			p.NameURL,
+			p.IpFirst,
+			p.IpNow,
+			p.DateFirst,
+			p.Status,
+			p.DateNoRes,
+			p.WafDate,
+			p.WafIp,
+		}
+	}
+	if res.ID.Int32 == 0 {
+		return false
+	}
+	return true
+}
+
+func checkData(args URL) CheckDataResult {
+	user := User{}
+	owner := Owner{}
+	if args.Email != "-" {
+		user = getUserData([]any{args.Email})
+		if user.ID.Valid == false {
+			return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: sql.NullInt32{}, Result: false}
+		}
+	}
+	if args.Owner != "-" {
+		owner = getOwnerData([]any{args.Owner})
+		if owner.ID.Valid == false {
+			return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: sql.NullInt32{}, Result: false}
+		}
+	}
+	if checkResourceInDB([]any{args.Url}) {
+		return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: sql.NullInt32{}, Result: false}
+	}
+	if user.ID.Int32 != 0 && owner.ID.Int32 != 0 {
+		return CheckDataResult{UserID: user.ID, OwnerId: owner.ID, Result: true}
+	}
+	if user.ID.Int32 != 0 && owner.ID.Int32 == 0 {
+		return CheckDataResult{UserID: user.ID, OwnerId: sql.NullInt32{}, Result: true}
+	}
+	if user.ID.Int32 == 0 && owner.ID.Int32 != 0 {
+		return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: owner.ID, Result: true}
+	}
+	return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: sql.NullInt32{}, Result: true}
+}
+
+func checker(str string) bool {
+	if str == "Error resolve and not curl" ||
+		str == "Not Waf" ||
+		str == "Error certificate" ||
+		str == "" {
 		return false
 	} else {
 		return true
 	}
 }
 
-func checkResourceInDB(query string, args []any) bool {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	res := resourceBody{}
-
-	for rows.Next() {
-		p := resourceBody{}
-		err = rows.Scan(
-			&p.ID,
-			&p.NameURL,
-			&p.IpFirst,
-			&p.IpNow,
-			&p.DateFirst,
-			&p.Status,
-			&p.DateNoRes,
-			&p.WafDate,
-			&p.WafIp,
-		)
-
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		res = resourceBody{
-			p.ID,
-			p.NameURL,
-			p.IpFirst,
-			p.IpNow,
-			p.DateFirst,
-			p.Status,
-			p.DateNoRes,
-			p.WafDate,
-			p.WafIp,
-		}
+func toJson(variable any) []byte {
+	jsonStruct, err := json.Marshal(variable)
+	if err != nil {
+		fmt.Printf("Error: %s", err.Error())
 	}
-	if res.ID != 0 {
-		return false
-	}
-	return true
+	return jsonStruct
 }
 
-func getOwnerId(query string, args []any) any {
+func findWeeks(today time.Time) Weeks {
+	mondayDurationDays := int(today.Weekday()) - 1
+	fridayDurationDays := 5 - int(today.Weekday())
+
+	return Weeks{
+		Last: Week{
+			Monday: today.Add(-(time.Duration(24*(mondayDurationDays+7)) * time.Hour)),
+			Friday: today.Add(-(time.Duration(24*(7-fridayDurationDays)) * time.Hour)),
+		},
+		Current: Week{
+			Monday: today.Add(-(time.Duration(24*mondayDurationDays) * time.Hour)),
+			Friday: today.Add(time.Duration(24*fridayDurationDays) * time.Hour),
+		},
+	}
+}
+
+func collector(args []any) WeekStatistic {
+	return WeekStatistic{
+		NoResolve: counter("select count(*) from resource where datenores between $1 and $2", args),
+		NewWaf:    counter("select count(*) from resource where wafdate between $1 and $2", args),
+	}
+}
+
+func counter(query string, args []any) int {
 	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+	var number int
+
+	for rows.Next() {
+		if err = rows.Scan(&number); err != nil {
+			log.Fatal(err)
+		}
+	}
+	return number
+}
+
+func getUserData(args []any) User {
+	rows, err := helpers.Select("select * from usdata where emailus = $1", args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
 		log.Fatalln("error: ", err)
-		return 0
+		return User{sql.NullInt32{}, sql.NullString{}, sql.NullString{}}
 	}
-	owner := own{}
+
+	us := User{}
 	for rows.Next() {
-		p := own{}
-		err = rows.Scan(
-			&p.ID,
-			&p.NameOwn,
-			&p.ShortName,
-		)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		owner = own{
-			p.ID,
-			p.NameOwn,
-			p.ShortName,
-		}
-	}
-	if owner.NameOwn == "" {
-		return sql.NullInt32{}
-	}
-	return owner.ID
-}
-
-func getUserId(query string, args []any) any {
-
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		log.Fatalln("error: ", err)
-		return sql.NullInt32{}.Valid
-	}
-
-	us := user{}
-	for rows.Next() {
-		p := user{}
+		p := User{}
 		err = rows.Scan(
 			&p.ID,
 			&p.Email,
@@ -125,304 +189,40 @@ func getUserId(query string, args []any) any {
 			fmt.Println(err)
 			continue
 		}
-		us = user{
+		us = User{
 			p.ID,
 			p.Email,
 			p.FIO,
 		}
 	}
-
-	if us.Email == "" {
-
-		return sql.NullInt32{}.Valid
-	}
-	return us.ID
+	return us
 }
 
-func getUserEmail(query string, args []any) string {
-	email := ""
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+func getOwnerData(args []any) Owner {
+	rows, err := helpers.Select("select * from owners where shortname = $1", args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
 		log.Fatalln("error: ", err)
-		return ""
+		return Owner{sql.NullInt32{}, sql.NullString{}, sql.NullString{}}
 	}
+
+	owner := Owner{}
 	for rows.Next() {
-		p := user{}
+		p := Owner{}
 		err = rows.Scan(
 			&p.ID,
-			&p.Email,
-			&p.FIO,
-		)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		email = p.Email
-	}
-	return email
-}
-
-func counterUrl(query string, args []any) (urlNumber, error) {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		return urlNumber{}, err
-	}
-	k := 0
-	req := urlNumber{}
-	for rows.Next() {
-		p := urlNumber{}
-		err = rows.Scan(
-			&p.Url,
-			&p.Number,
-		)
-		if err != nil {
-			return urlNumber{}, err
-		}
-		k++
-		req = urlNumber{
-			p.Url,
-			k,
-		}
-	}
-	return req, nil
-}
-
-func counterWaf(query string, args []any) (waf, error) {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		return waf{}, err
-	}
-
-	req := waf{}
-	k := 0
-	for rows.Next() {
-		p := waf{}
-		err = rows.Scan(
-			&p.Waf,
-			&p.Number,
-		)
-		if err != nil {
-			return waf{}, err
-		}
-		if p.Waf != "Not Waf" {
-			k++
-		}
-		req = waf{
-			p.Waf,
-			k}
-	}
-	return req, nil
-
-}
-
-func countUsers(query string, args []any) (userNumber, error) {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-	if err != nil {
-		return userNumber{}, err
-	}
-	req := userNumber{}
-	k := 0
-	for rows.Next() {
-		p := userNumber{}
-		err = rows.Scan(
-			&p.IDOwner,
-			&p.Number,
-		)
-		if err != nil {
-			return userNumber{}, err
-		}
-		k++
-		req = userNumber{
-			p.IDOwner,
-			k}
-	}
-	return req, nil
-}
-
-func countDurationToLastWeek(today time.Time) (durationMonday, durationFriday time.Duration) {
-	durationInDays := int(today.Weekday()) - 1
-	durationMonday = time.Duration(24 * (durationInDays + 7))
-
-	durationInDays = 5 - int(today.Weekday())
-	durationFriday = time.Duration(24 * (7 - durationInDays))
-	return durationMonday, durationFriday
-}
-
-func countDurationToCurrentWeek(today time.Time) (durationMonday, durationFriday time.Duration) {
-	durationInDays := int(today.Weekday()) - 1
-	durationMonday = time.Duration(24 * durationInDays)
-
-	durationInDays = 5 - int(today.Weekday())
-	durationFriday = time.Duration(24 * durationInDays)
-	return durationMonday, durationFriday
-}
-
-func findLastWeek(today time.Time) (monday, friday time.Time) {
-	durationMonday, durationFriday := countDurationToLastWeek(today)
-	lastMonday := today.Add(-durationMonday * time.Hour)
-	lastFriday := today.Add(-durationFriday * time.Hour)
-
-	return lastMonday, lastFriday
-}
-
-func findCurrentWeek(today time.Time) (monday, friday time.Time) {
-	durationMonday, durationFriday := countDurationToCurrentWeek(today)
-	monday = today.Add(-durationMonday * time.Hour)
-	friday = today.Add(durationFriday * time.Hour)
-
-	return monday, friday
-}
-
-func counter(c *gin.Context, args []any) (noResolve, newWaf int) {
-	res, _ := getInfoFromTableResource(c, "select * from resource where datenores between $1 and $2", args)
-	noResolve = len(res)
-
-	res, _ = getInfoFromTableResource(c, "select * from resource where wafdate between $1 and $2", args)
-	newWaf = len(res)
-
-	return noResolve, newWaf
-}
-
-func getInfoFromTableResource(c *gin.Context, query string, args []any) ([]resourceBody, error) {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-		return nil, err
-	}
-
-	res := []resourceBody{}
-
-	for rows.Next() {
-		p := resourceBody{}
-		err := rows.Scan(
-			&p.ID,
-			&p.NameURL,
-			&p.IpFirst,
-			&p.IpNow,
-			&p.DateFirst,
-			&p.Status,
-			&p.DateNoRes,
-			&p.WafDate,
-			&p.WafIp,
-		)
-
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		res = append(res, resourceBody{
-			p.ID,
-			p.NameURL,
-			p.IpFirst,
-			p.IpNow,
-			p.DateFirst,
-			p.Status,
-			p.DateNoRes,
-			p.WafDate,
-			p.WafIp,
-		})
-	}
-	return res, nil
-}
-
-func checkLogin(query string, args []any) bool {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	us := users{}
-
-	for rows.Next() {
-		p := users{}
-		err = rows.Scan(
-			&p.Id,
-			&p.Email,
-			&p.Password,
-			&p.Access,
-		)
-
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		us = users{
-			p.Id,
-			p.Email,
-			p.Password,
-			p.Access,
-		}
-	}
-	if us.Email == "" {
-		return false
-	}
-	return true
-}
-
-func checkOwner(query string, args []any) bool {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	o := own{}
-
-	for rows.Next() {
-		p := own{}
-		err = rows.Scan(
-			&p.ID,
-			&p.NameOwn,
+			&p.FullName,
 			&p.ShortName,
 		)
-
 		if err != nil {
 			fmt.Println(err)
-			return false
+			continue
 		}
-		o = own{
+		owner = Owner{
 			p.ID,
-			p.NameOwn,
+			p.FullName,
 			p.ShortName,
 		}
 	}
-	if o.ID == 0 {
-		return false
-	}
-	return true
-}
-
-func checkEmployee(query string, args []any) bool {
-	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	us := users{}
-
-	for rows.Next() {
-		p := users{}
-		err = rows.Scan(
-			&p.Id,
-			&p.Email,
-			&p.Password,
-			&p.Access,
-		)
-
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		us = users{
-			p.Id,
-			p.Email,
-			p.Password,
-			p.Access,
-		}
-	}
-	if us.Email != "" {
-		return false
-	}
-	return true
+	return owner
 }
