@@ -1,4 +1,4 @@
-import * as httpClient from "../../../httpClient.js";
+import * as httpClient from "../../httpClient.js";
 
  export async function getData() {
     let sendUrl = "http://localhost:8080/api/statistic";
