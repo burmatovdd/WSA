@@ -14,4 +14,6 @@ type Service interface {
 	CheckResource(c *gin.Context)
 	DeleteResource(c *gin.Context)
 	UpdateResource(c *gin.Context)
+	GetGeneralStat(c *gin.Context)
+	GetCertificates(c *gin.Context)
 }

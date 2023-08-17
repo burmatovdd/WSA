@@ -65,8 +65,15 @@ type WeeksStatistic struct {
 }
 
 type WeekStatistic struct {
-	NoResolve int `json:"no_resolve"`
-	NewWaf    int `json:"new_waf"`
+	NoResolve      int                     `json:"no_resolve"`
+	NewWaf         int                     `json:"new_waf"`
+	NoResResource  []WeekStatisticResource `json:"no_res_resource"`
+	NewWafResource []WeekStatisticResource `json:"new_waf_resource"`
+}
+
+type WeekStatisticResource struct {
+	Resource string `json:"resource"`
+	Date     string `json:"date"`
 }
 
 type URL struct {
@@ -75,7 +82,7 @@ type URL struct {
 	Owner string `json:"owner"`
 }
 
-type UrlTable struct {
+type ResourceTable struct {
 	ID        sql.NullInt32  `json:"ID"`
 	NameURL   sql.NullString `json:"NameURL"`
 	IpFirst   sql.NullString `json:"IpFirst"`
@@ -87,7 +94,7 @@ type UrlTable struct {
 	WafIp     sql.NullString `json:"WafIp"`
 }
 
-type ResourceTable struct {
+type UrlTable struct {
 	ID         sql.NullInt32
 	URL        sql.NullString
 	IP         sql.NullString
@@ -114,14 +121,37 @@ type CheckDataResult struct {
 
 type CheckResource struct {
 	URL     string `json:"URL"`
+	IP      string `json:"IP"`
 	Status  bool   `json:"Status"`
 	WAF     bool   `json:"WAF"`
 	SSL     bool   `json:"SSL"`
 	DateEnd string `json:"DateEnd"`
 	Email   string `json:"Email"`
+	FIO     string `json:"FIO"`
 }
 
 type UpdateData struct {
 	Url   string `json:"url"`
 	Email string `json:"email"`
+}
+
+type GeneralStat struct {
+	Resources int `json:"resources"`
+	Owners    int `json:"owners"`
+	Waf       int `json:"waf"`
+}
+
+type CertificateInfo struct {
+	Current []Certificate `json:"current"`
+	Next    []Certificate `json:"next"`
+}
+
+type Certificate struct {
+	Resource string `json:"resource"`
+	Date     string `json:"date"`
+}
+
+type Months struct {
+	Current string
+	Next    string
 }

@@ -26,6 +26,8 @@ func (service *Service) CreateServer() {
 
 	router.GET("/api/statistic", method.GetStat)
 	router.GET("/api/week-statistic", method.GetWeekStat)
+	router.GET("/api/general-statistic", method.GetGeneralStat)
+	router.GET("/api/certificates", method.GetCertificates)
 
 	router.POST("/api/login", method.Login)
 	router.POST("/api/add-resource", method.AddResource)

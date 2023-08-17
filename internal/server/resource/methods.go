@@ -108,12 +108,14 @@ func (service *PgService) AddResource(c *gin.Context) {
 		return
 	}
 	result := checkData(data)
-	if !result.Result {
+	if result.Result == false {
+		fmt.Println("result.result: ", result.Result)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 		})
 		return
 	}
+	fmt.Println(result.UserID, result.OwnerId)
 	res := helpers.Exec(
 		"INSERT INTO url (nameurl,idusd,idowner) VALUES ($1,$2,$3)",
 		[]any{data.Url, result.UserID, result.OwnerId},
@@ -173,7 +175,7 @@ func (service *PgService) CheckResource(c *gin.Context) {
 	resourceStr := CheckResource{}
 
 	for rows.Next() {
-		p := ResourceTable{}
+		p := UrlTable{}
 		err := rows.Scan(
 			&p.ID,
 			&p.URL,
@@ -193,11 +195,13 @@ func (service *PgService) CheckResource(c *gin.Context) {
 
 		resourceStr = CheckResource{
 			URL:     p.URL.String,
+			IP:      p.IP.String,
 			Status:  checker(p.Err.String),
 			WAF:     checker(p.Waf.String),
 			SSL:     checker(p.Issuer.String),
 			DateEnd: p.EndDate.String,
 			Email:   getUserData([]any{p.IDUser}).Email.String,
+			FIO:     getUserData([]any{p.IDUser}).FIO.String,
 		}
 	}
 
@@ -261,15 +265,15 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 	}
 
 	user := getUserData([]any{data.Email})
-	if user.ID.Valid == false {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-			"body": false,
-		})
-		return
-	}
+	//if user.ID.Valid == false {
+	//	c.JSON(http.StatusInternalServerError, gin.H{
+	//		"code": http.StatusInternalServerError,
+	//		"body": false,
+	//	})
+	//	return
+	//}
 
-	res := helpers.Exec("update url set idusd = $1 where nameurl = $2", []any{user.ID.Int32, data.Url}, serverConf.DefaultConfig)
+	res := helpers.Exec("update url set idusd = $1 where nameurl = $2", []any{user.ID, data.Url}, serverConf.DefaultConfig)
 	if !res {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -280,5 +284,92 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"body": res,
+	})
+}
+
+func (service *PgService) GetGeneralStat(c *gin.Context) {
+	var resources, owners, waf int
+	rows, err := helpers.Select("select count(*) from url", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&resources); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	rows, err = helpers.Select("select count(*) from owners", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&owners); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	rows, err = helpers.Select("select withwaf from stat where idstat = (select max(idstat) from stat );", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&waf); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": string(toJson(GeneralStat{
+			resources, owners, waf,
+		})),
+	})
+
+}
+
+func (service *PgService) GetCertificates(c *gin.Context) {
+	month := findMonth()
+
+	rows, err := helpers.Select("select * from url where datecert between $1 and $2", []any{month.Current, month.Next}, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	if err != nil {
+		fmt.Println("err")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	certificates := []Certificate{}
+
+	for rows.Next() {
+		p := UrlTable{}
+		err := rows.Scan(
+			&p.ID,
+			&p.URL,
+			&p.IP,
+			&p.Err,
+			&p.Waf,
+			&p.IDUser,
+			&p.IDOwner,
+			&p.CommonName,
+			&p.Issuer,
+			&p.EndDate)
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		certificates = append(certificates, Certificate{p.URL.String, p.EndDate.String[0:10]})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": string(toJson(sortCertificates(month, certificates))),
 	})
 }
