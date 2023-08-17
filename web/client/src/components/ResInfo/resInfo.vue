@@ -1,8 +1,11 @@
+<link rel="stylesheet" href="resInfo.scss">
 <template>
 <div class="res__content">
   <div class="res__name">
     <h4 class="name__title">Название</h4>
     <p class="name__text">{{this.$props.resource.resName}}</p>
+    <h4 class="name__title">IP</h4>
+    <p class="name__text">{{this.$props.resource.ip}}</p>
   </div>
   <div class="res__info">
     <div class="res__info--item">
@@ -40,24 +43,25 @@
   <div class="res__user">
     <h4 class="user__title">Ответсвенное лицо</h4>
     <div class="user__content">
-      <p class="user__content--text" v-if="!isEdit">{{this.$props.resource.user}}</p>
+      <div class="user__content--container" v-if="!isEdit">
+        <p class="user__content--text">{{this.$props.resource.email}}</p>
+        <p class="user__content--text">{{this.$props.resource.fio}}</p>
+      </div>
       <div class="user__edit--content" v-else>
         <div class="content__comment" v-if="isOk">
           <p class="comment__text" v-if="!statusEdit">Ошибка!</p>
         </div>
         <div class="content__main">
-          <Form  v-slot="{ meta }">
+          <Form>
             <Field name="search"
                    type="text"
                    class="content__input"
                    placeholder="Введите почту"
-                   v-model="user"
-                   :rules="validateInput"/>
-            <button type="button" class="content__agree" @click="editUser" :disabled="!meta.valid">Изменить</button>
+                   v-model="user"/>
+            <button type="button" class="content__agree" @click="editUser">Изменить</button>
           </Form>
         </div>
       </div>
-      <button class="user__content--edit" @click="openEditModal" v-if="!isEdit"><img src="../../img/edit.svg" alt="edit"></button>
     </div>
 
   </div>
@@ -65,8 +69,11 @@
     <p class="delete__result--text" v-if="statusOk">Ресурс удален!</p>
     <p class="delete__result--text" v-else>Ошибка!</p>
   </div>
-<!--  todo: добавить кнопку редактирования-->
-  <button class="res__delete" @click="deleteResource">Удалить</button>
+  <div class="buttons__container">
+    <button class="res__button" @click="openEditModal" v-if="!isEdit">Изменить</button>
+    <button class="res__button" @click="closeEditModal" v-if="isEdit">Назад</button>
+    <button class="res__button res__button--delete" @click="deleteResource">Удалить</button>
+  </div>
 </div>
 </template>
 
@@ -122,6 +129,7 @@ export default defineComponent({
     openEditModal: function (){
       this.$data.isEdit = true
     },
+    closeEditModal: function (){this.$data.isEdit = false},
     editUser: function (){
       let sendUrl = "http://localhost:8080/api/update-resource";
 

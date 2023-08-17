@@ -23,40 +23,29 @@
         <button type="button" class="form__submit" @click="toggleModalDialog" :disabled="!meta.valid">Проверить ресурс</button>
       </Form>
     </form>
-    <div class='chart chart--activeRes'/>
-    <div class='chart chart--commonInfo'>
-      <div class="chart__title">Общая информация</div>
-      <div class="chart__info">
-        <div class="chart__info-text">Всего организаций : </div>
-        <div class="chart__info-text">Всего ресурсов : </div>
-      </div>
+    <div class='chart chart--activeRes'>
+      Free content
     </div>
-    <div class="chart chart--report">
-      <h4 class="chart__title">Отчет</h4>
-      <div class="chart__container chart__container--week">
-        <div class="chart__week chart__week--last">
-          <h5 class="chart__week-title">За прошлую неделю</h5>
-          <p class="chart__week-text">Неактивные : {{ lastWeekNoActive }}</p>
-          <p class="chart__week-text">Новые WAF : {{ lastWeekWaf }}</p>
-        </div>
-        <div class="chart__week--current">
-          <h5 class="chart__week-title">За эту неделю</h5>
-          <p class="chart__week-text">Неактивные : {{ currentWeekNoActive }}</p>
-          <p class="chart__week-text">Новые WAF : {{ currentWeekWaf }}</p>
-        </div>
-      </div>
+    <div class='chart chart--commonInfo'>
+      <CommonInfo/>
     </div>
     <div class="chart chart--SSL">
-      <h4 class="chart__title">SSL OK</h4>
-      <div class="chart__container">
-        <SSLOk/>
-      </div>
+      Free content
     </div>
     <div class="chart chart--WAF">
       <h4 class="chart__title">WAF</h4>
       <div class="chart__container">
         <Waf/>
       </div>
+    </div>
+    <div class="chart chart--report">
+      <Report/>
+    </div>
+    <div class="chart chart--reports">
+      <Reports/>
+    </div>
+    <div class="chart chart--certificates">
+        <Certificate/>
     </div>
   </main>
   <Modal
@@ -75,24 +64,29 @@
 
 <script>
 import Sidebar from "../Sidebar/sidebar.vue";
-import SSLOk from "../Charts/sslOkChart/sslOk.vue";
-import Waf from "../Charts/wafChart/waf.vue";
+import Certificate from "../CertificateInfo/certificateInfo.vue";
+import Waf from "../wafChart/waf.vue";
 import Modal from '../../components/Modal/modal.vue';
 import AddResource from "../AddResource/addResource.vue";
 import ResInfo from "../ResInfo/resInfo.vue";
+import Report from "../ReportGeneral/report.vue";
+import Reports from "../Reports/reports.vue";
+import CommonInfo from "../CommonInfo/commonInfo.vue";
 import {Form, Field, ErrorMessage} from 'vee-validate';
 import * as httpClient from "../../httpClient";
 import { defineComponent } from 'vue';
-import {getData} from "../Charts/sslOkChart/PieConfig.js";
 export default defineComponent({
   name: "dashboard.vue",
   components: {
     Sidebar,
-    SSLOk,
+    Certificate,
     Waf,
     Modal,
     AddResource,
     ResInfo,
+    CommonInfo,
+    Report,
+    Reports,
     Form,
     Field,
     ErrorMessage
@@ -104,30 +98,20 @@ export default defineComponent({
       resourceName: null,
       resourceInfo: {
         resName: null,
+        ip: null,
         status: false,
         waf: false,
         ssl: false,
         date: null,
-        user: null,
-      },
-      lastWeekNoActive: null,
-      lastWeekWaf: null,
-      currentWeekNoActive: null,
-      currentWeekWaf: null,
-      isActive: false,
-    }
-  },
-  mounted() {
-    let sendUrl = "http://localhost:8080/api/week-statistic";
+        email: null,
+        fio: null,
 
-    httpClient.Get(sendUrl).then(response => {
-      let resp = JSON.parse(response.data.body)
-      console.info(resp)
-      this.lastWeekNoActive = resp.last.no_resolve
-      this.lastWeekWaf = resp.last.new_waf
-      this.currentWeekNoActive = resp.current.no_resolve
-      this.currentWeekWaf = resp.current.new_waf
-    })
+      },
+      isActive: false,
+      isOpen: false,
+      isOpenMore: false,
+
+    }
   },
   methods: {
     validateLogin(value) {
@@ -140,17 +124,17 @@ export default defineComponent({
       return true;
     },
     toggleModalDialog() {
-
       this.$data.openedModalDialog = !this.$data.openedModalDialog;
       let sendUrl = "http://localhost:8080/api/check-resource";
 
-      // let today = Date.now()
-      // console.info(today)
-      // admin.parki.mosreg.ru
-      // 2018.llo.zdravmo.mosreg.ru
-
       return httpClient.Post(sendUrl,this.$data.resourceName).then(response =>{
         let resp = JSON.parse(response.data.body)
+
+        if (resp.IP === "" || resp.IP === "----------"){
+          this.resourceInfo.ip = "undefined"
+        }else{
+          this.resourceInfo.ip = resp.IP
+        }
 
         if (resp.DateEnd === "--------------------" || resp.DateEnd === "" ){
           this.resourceInfo.date = "undefined"
@@ -159,10 +143,12 @@ export default defineComponent({
           this.resourceInfo.date = resp.DateEnd
         }
         if (resp.Email === ""){
-          this.resourceInfo.user = "undefined"
+          this.resourceInfo.email = "undefined"
+          this.resourceInfo.fio = "undefined"
         }
         else{
-          this.resourceInfo.user = resp.Email
+          this.resourceInfo.email = resp.Email
+          this.resourceInfo.fio = resp.FIO
         }
         this.resourceInfo.resName = resp.URL
         this.resourceInfo.status = resp.Status

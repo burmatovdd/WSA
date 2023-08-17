@@ -1,0 +1,57 @@
+.reports{
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.current{
+  &__week{
+   &--content{
+     display: flex;
+     justify-content: center;
+   }
+    &--noActive{
+      padding-right: 10rem;
+    }
+  }
+}
+
+.last{
+  &__week{
+    padding-top: 2rem;
+    &--content{
+      display: flex;
+      justify-content: center;
+    }
+    &--WAF{
+      padding-right: 10rem;
+    }
+  }
+}
+
+.data{
+  &__info{
+    display: flex;
+    justify-content: space-between;
+    &--date{
+      padding-right: 1.5rem;
+    }
+    &--resource{
+      margin-right: 1rem;
+    }
+  }
+
+  &__content{
+    display: flex;
+    justify-content: space-between;
+
+    &--resource{
+      padding-right: 5rem;
+    }
+    &--date{
+      padding-right: 1.5rem;
+    }
+
+  }
+}

@@ -1,27 +1,25 @@
 <template>
 <div class="res__content">
   <p class="content__text">Хотите добавить {{this.$props.resource}} ?</p>
-  <Form class="add__form" @submit="onSubmit" v-slot="{ meta }">
+  <Form class="add__form" @submit="onSubmit" >
     <p class="form__text">Ответственное лицо</p>
     <Field name="user"
            type="text"
            class="form__input"
            placeholder="Введите почту"
-           v-model="user"
-           :rules="validateInput"/>
+           v-model="user"/>
     <p class="form__text">Организация</p>
     <Field name="owner"
            type="text"
            class="form__input"
            placeholder="Введите организацию"
-           v-model="owner"
-           :rules="validateInput"/>
-    <p class="form__text">Если данные не известны, поставьте прочерк(-)</p>
+           v-model="owner"/>
+    <p class="form__text">Если данные не известны, оставьте поля пустыми</p>
     <div class="add__result" v-if="isOpen">
       <p class="add__result--text" v-if="!statusOk">Ресурс добавлен!</p>
       <p class="add__result--text" v-else>Ошибка!</p>
     </div>
-    <button type="button" class="res__button" @click="onSubmit" :disabled="!meta.valid">Добавить</button>
+    <button type="button" class="res__button" @click="onSubmit">Добавить</button>
   </Form>
 </div>
 </template>
@@ -67,15 +65,6 @@ export default defineComponent({
           this.$data.statusOk = false
         }
       })
-    },
-    validateInput(value) {
-      this.isActive = false
-      // if the field is empty
-      if (!value) {
-        return null;
-      }
-      // All is good
-      return true;
     },
   }
 });

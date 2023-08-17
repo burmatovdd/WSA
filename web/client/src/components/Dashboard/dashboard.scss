@@ -33,8 +33,12 @@
       auto
       3rem
       auto
-      1fr
-      3rem;
+      3rem
+      auto
+      3rem
+      auto
+      3rem
+      1fr;
     grid-template-areas:
       '. .              .             .               .             .                .'
       '. .              .             .               .             .                .'
@@ -42,7 +46,11 @@
       '. .              .             .               .             .                .'
       '. activeRes      activeRes     activeRes       .             commonInfo       .'
       '. .              .             .               .             .                .'
-      '. report         .             SSL             .             WAF              .'
+      '. SSL         .             WAF             .             report              .'
+      '. .              .             .               .             .                .'
+      '. reports        reports       reports         reports       reports          .'
+      '. .              .             .               .             .                .'
+      '. certificates   certificates  certificates    certificates  certificates     .'
       '. .              .             .               .             .                .'
       '. .              .             .               .             .                .';
   }
@@ -98,13 +106,12 @@
   // aspect-ratio: 456/350;
   background-color: #1A2028;
   border-radius: 1rem;
-  display: flex;
-  flex-direction: column;
   filter: drop-shadow(5px 1rem 3rem rgba(0, 0, 0, 0.25));
   padding: 2.5rem;
 
   &--activeRes {
     grid-area: activeRes;
+    text-align: center;
     //  aspect-ratio: 996/350;
   }
 
@@ -118,21 +125,26 @@
 
   &--SSL {
     grid-area: SSL;
+    text-align: center;
   }
 
   &--WAF {
     grid-area: WAF;
   }
 
+  &--reports{
+    grid-area: reports;
+  }
+
+  &--certificates{
+    grid-area: certificates;
+  }
+
   &__container{
     canvas{
       max-width: 100%;
     }
-    &--week{
-      display: flex;
-      flex-direction: column;
-     align-items: center;
-    }
+
   }
   &__title{
     text-align: center;
@@ -140,31 +152,6 @@
     margin-bottom: 2rem;
   }
 
-  &__week {
-    $week: &;
-
-    &-title {
-      margin-top: 0;
-    }
-
-    &--last {
-      #{$week} {
-        &-title {
-          color: #DE3163;
-        }
-      }
-    }
-
-    &--current {
-      #{$week} {
-        margin-top: 2.5rem;
-
-        &-title {
-          color: #DE3163;
-        }
-      }
-    }
-  }
 }
 
 .modal{
@@ -177,6 +164,37 @@
   &__title{
     font-size: 20px;
     margin: 0;
+  }
+}
+
+.content{
+  &__noActive{
+    text-align: center;
+    padding-right: 3rem;
+  }
+}
+
+.report{
+  &__content{
+    display: flex;
+    justify-content: center;
+  }
+  &__array{
+    padding: 0;
+    max-height: 105px;
+    &--item{
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+      width: 100%;
+    }
+  }
+  &__last{
+    display: flex;
+    &-noActive{
+      padding-right: 2rem;
+    }
   }
 }
 

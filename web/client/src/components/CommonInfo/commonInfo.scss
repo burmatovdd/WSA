@@ -1,0 +1,13 @@
+.common{
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  &__title{
+    margin-bottom: 2rem;
+  }
+  &__info{
+    &--text{
+      margin-bottom: 1rem;
+    }
+  }
+}
