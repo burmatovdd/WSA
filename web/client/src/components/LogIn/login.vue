@@ -9,7 +9,7 @@
              class="login-form_input login-form_input--login"
              placeholder="login"
              :rules="validateLogin"/>
-      <ErrorMessage name="password" class="error-message"/>
+
       <Field name="password"
              type="password"
              class="login-form_input"
@@ -74,7 +74,6 @@ export default defineComponent( {
         return 'Поля должны быть заполнеными';
       }
       this.user.password = value;
-
       return true;
     },
     login: async function () {

@@ -109,16 +109,26 @@ func (service *PgService) AddResource(c *gin.Context) {
 	}
 	result := checkData(data)
 	if result.Result == false {
-		fmt.Println("result.result: ", result.Result)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 		})
 		return
 	}
-	fmt.Println(result.UserID, result.OwnerId)
+
+	collection := collectInfo(data.Url)
 	res := helpers.Exec(
-		"INSERT INTO url (nameurl,idusd,idowner) VALUES ($1,$2,$3)",
-		[]any{data.Url, result.UserID, result.OwnerId},
+		"INSERT INTO url (nameurl,ip,err,waf,idusd,idowner,commonname,issuer,datecert) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+		[]any{
+			collection.Resolve.NameUrl,
+			collection.Resolve.Ip,
+			collection.Resolve.Status,
+			collection.Resolve.Waf,
+			result.UserID,
+			result.OwnerId,
+			collection.Certificate.CommonName,
+			collection.Certificate.Issuer,
+			collection.Certificate.DateCert,
+		},
 		serverConf.DefaultConfig)
 	if !res {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -126,8 +136,16 @@ func (service *PgService) AddResource(c *gin.Context) {
 		})
 		return
 	}
-	res = helpers.Exec("INSERT INTO resource (nameurl) VALUES ($1)",
-		[]any{data.Url},
+	res = helpers.Exec("INSERT INTO resource (nameurl,ipfirst,datefirst,datenores,status,wafdate,wafip) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+		[]any{
+			data.Url,
+			collection.Resolve.Ip,
+			time.Now().Format("2006-01-02"),
+			collection.Resolve.DateNoRes,
+			collection.Resolve.Status,
+			collection.Resolve.WafDate,
+			collection.Resolve.WafIp,
+		},
 		serverConf.DefaultConfig,
 	)
 	if !res {
@@ -192,16 +210,16 @@ func (service *PgService) CheckResource(c *gin.Context) {
 			fmt.Println(err)
 			continue
 		}
-
 		resourceStr = CheckResource{
 			URL:     p.URL.String,
 			IP:      p.IP.String,
 			Status:  checker(p.Err.String),
 			WAF:     checker(p.Waf.String),
-			SSL:     checker(p.Issuer.String),
+			SSL:     getCertificate(p.URL.String),
 			DateEnd: p.EndDate.String,
-			Email:   getUserData([]any{p.IDUser}).Email.String,
-			FIO:     getUserData([]any{p.IDUser}).FIO.String,
+			Email:   getUserData("select * from usdata where idusd = $1", []any{p.IDUser}).Email.String,
+			FIO:     getUserData("select * from usdata where idusd = $1", []any{p.IDUser}).FIO.String,
+			Owner:   getOwnerData("select * from owners where shortname = $1", []any{p.IDOwner}).FullName.String,
 		}
 	}
 
@@ -264,7 +282,7 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 		return
 	}
 
-	user := getUserData([]any{data.Email})
+	user := getUserData("select * from usdata where emailus = $1", []any{data.Email})
 	//if user.ID.Valid == false {
 	//	c.JSON(http.StatusInternalServerError, gin.H{
 	//		"code": http.StatusInternalServerError,
@@ -283,12 +301,11 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": res,
 	})
 }
 
 func (service *PgService) GetGeneralStat(c *gin.Context) {
-	var resources, owners, waf int
+	var resources, deactiveRes, owners, waf int
 	rows, err := helpers.Select("select count(*) from url", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 	for rows.Next() {
@@ -322,10 +339,21 @@ func (service *PgService) GetGeneralStat(c *gin.Context) {
 		}
 	}
 
+	rows, err = helpers.Select("select erservers from stat;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&deactiveRes); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"body": string(toJson(GeneralStat{
-			resources, owners, waf,
+			resources, deactiveRes, owners, waf,
 		})),
 	})
 
@@ -333,7 +361,6 @@ func (service *PgService) GetGeneralStat(c *gin.Context) {
 
 func (service *PgService) GetCertificates(c *gin.Context) {
 	month := findMonth()
-
 	rows, err := helpers.Select("select * from url where datecert between $1 and $2", []any{month.Current, month.Next}, serverConf.DefaultConfig)
 	defer rows.Close()
 

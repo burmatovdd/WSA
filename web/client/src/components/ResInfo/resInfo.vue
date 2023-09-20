@@ -2,10 +2,14 @@
 <template>
 <div class="res__content">
   <div class="res__name">
-    <h4 class="name__title">Название</h4>
-    <p class="name__text">{{this.$props.resource.resName}}</p>
-    <h4 class="name__title">IP</h4>
-    <p class="name__text">{{this.$props.resource.ip}}</p>
+    <div class="res__name--content">
+      <h4 class="name__title">Название:</h4>
+      <p class="name__text">{{this.$props.resource.resName}}</p>
+    </div>
+    <div class="res__name--content">
+      <h4 class="name__title">IP:</h4>
+      <p class="name__text">{{this.$props.resource.ip}}</p>
+    </div>
   </div>
   <div class="res__info">
     <div class="res__info--item">
@@ -45,7 +49,7 @@
     <div class="user__content">
       <div class="user__content--container" v-if="!isEdit">
         <p class="user__content--text">{{this.$props.resource.email}}</p>
-        <p class="user__content--text">{{this.$props.resource.fio}}</p>
+        <p class="user__content--text user__content--text-fio">{{this.$props.resource.fio}}</p>
       </div>
       <div class="user__edit--content" v-else>
         <div class="content__comment" v-if="isOk">
@@ -92,7 +96,6 @@ export default defineComponent({
     resource: Object
   },
   data: function (){
-    console.info(this.$props.resource)
     return {
       isEdit: false,
       isOpen: false,

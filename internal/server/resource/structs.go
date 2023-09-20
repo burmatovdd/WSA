@@ -120,14 +120,15 @@ type CheckDataResult struct {
 }
 
 type CheckResource struct {
-	URL     string `json:"URL"`
-	IP      string `json:"IP"`
-	Status  bool   `json:"Status"`
-	WAF     bool   `json:"WAF"`
-	SSL     bool   `json:"SSL"`
-	DateEnd string `json:"DateEnd"`
-	Email   string `json:"Email"`
-	FIO     string `json:"FIO"`
+	URL     string         `json:"URL"`
+	IP      string         `json:"IP"`
+	Status  bool           `json:"Status"`
+	WAF     bool           `json:"WAF"`
+	SSL     UrlCertificate `json:"SSL"`
+	DateEnd string         `json:"DateEnd"`
+	Email   string         `json:"Email"`
+	FIO     string         `json:"FIO"`
+	Owner   string         `json:"Owner"`
 }
 
 type UpdateData struct {
@@ -136,9 +137,10 @@ type UpdateData struct {
 }
 
 type GeneralStat struct {
-	Resources int `json:"resources"`
-	Owners    int `json:"owners"`
-	Waf       int `json:"waf"`
+	Resources          int `json:"resources"`
+	DeactivateResource int `json:"deactivateResource"`
+	Owners             int `json:"owners"`
+	Waf                int `json:"waf"`
 }
 
 type CertificateInfo struct {
@@ -154,4 +156,25 @@ type Certificate struct {
 type Months struct {
 	Current string
 	Next    string
+}
+
+type ResolveInfo struct {
+	Ip        string     `json:"ip"`
+	Status    string     `json:"status"`
+	DateNoRes *time.Time `json:"dateNoRes"`
+	WafDate   *time.Time `json:"wafDate"`
+	Waf       string     `json:"waf"`
+	WafIp     *string    `json:"wafIp"`
+	NameUrl   string     `json:"nameurl"`
+}
+
+type UrlCertificate struct {
+	CommonName string `json:"common_name"`
+	Issuer     string `json:"issuer"`
+	DateCert   string `json:"date_cert"`
+}
+
+type AddResourceCollection struct {
+	Resolve     ResolveInfo    `json:"resolve"`
+	Certificate UrlCertificate `json:"certificate"`
 }

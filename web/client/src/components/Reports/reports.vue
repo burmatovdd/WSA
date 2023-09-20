@@ -105,7 +105,7 @@ export default {
       this.lastNoRes = resp.last.no_res_resource
       this.lastNewWaf = resp.last.new_waf_resource
       this.currentNoRes = resp.current.no_res_resource
-      this.currentNewWaf = resp.current.new_waf
+      this.currentNewWaf = resp.current.new_waf_resource
     })
   }
 }

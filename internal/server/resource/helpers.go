@@ -3,10 +3,13 @@ package resource
 import (
 	"WAF_Analytics/configs/serverConf"
 	"WAF_Analytics/internal/server/postgresql/helpers"
+	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"strconv"
 	"time"
 )
@@ -89,13 +92,13 @@ func checkData(args URL) CheckDataResult {
 	user := User{}
 	owner := Owner{}
 	if args.Email != "" {
-		user = getUserData([]any{args.Email})
+		user = getUserData("select * from usdata where emailus = $1", []any{args.Email})
 		if user.ID.Valid == false {
 			return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: sql.NullInt32{}, Result: false}
 		}
 	}
 	if args.Owner != "" {
-		owner = getOwnerData([]any{args.Owner})
+		owner = getOwnerData("select * from owners where shortname = $1", []any{args.Owner})
 		if owner.ID.Valid == false {
 			return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: sql.NullInt32{}, Result: false}
 		}
@@ -119,7 +122,8 @@ func checker(str string) bool {
 	if str == "Error resolve and not curl" ||
 		str == "Not Waf" ||
 		str == "Error certificate" ||
-		str == "" {
+		str == "Error connect" ||
+		str == "--------------------" {
 		return false
 	} else {
 		return true
@@ -152,21 +156,24 @@ func findWeeks(today time.Time) Weeks {
 
 func findMonth() Months {
 	today := time.Now()
-	firstDay := today.Day() - (today.Day() - 1)
-	lastDay := 31
-
 	month := ""
 	if int(today.Month()) < 10 {
 		month = "0" + strconv.Itoa(int(today.Month()))
 	}
+	nextMonth, err := time.Parse("2006-01-02", strconv.Itoa(today.Year())+"-"+month+"-"+strconv.Itoa(31))
 
-	nextMonth, err := time.Parse("2006-01-02", strconv.Itoa(today.Year())+"-"+month+"-"+strconv.Itoa(lastDay))
 	if err != nil {
-		return Months{}
+		nextMonth, err = time.Parse("2006-01-02", strconv.Itoa(today.Year())+"-"+month+"-"+strconv.Itoa(30))
+		if err != nil {
+			nextMonth, err = time.Parse("2006-01-02", strconv.Itoa(today.Year())+"-"+month+"-"+strconv.Itoa(29))
+			if err != nil {
+				nextMonth, err = time.Parse("2006-01-02", strconv.Itoa(today.Year())+"-"+month+"-"+strconv.Itoa(28))
+			}
+		}
 	}
 
 	return Months{
-		strconv.Itoa(today.Year()) + "-" + month + "-" + "0" + strconv.Itoa(firstDay),
+		strconv.Itoa(today.Year()) + "-" + month + "-" + "0" + strconv.Itoa(1),
 		nextMonth.AddDate(0, 1, 0).Format("2006-01-02"),
 	}
 
@@ -221,8 +228,8 @@ func counter(query string, args []any) (int, []WeekStatisticResource) {
 	return len(resources), resources
 }
 
-func getUserData(args []any) User {
-	rows, err := helpers.Select("select * from usdata where emailus = $1", args, serverConf.DefaultConfig)
+func getUserData(query string, args []any) User {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
 		log.Fatalln("error: ", err)
@@ -250,8 +257,8 @@ func getUserData(args []any) User {
 	return us
 }
 
-func getOwnerData(args []any) Owner {
-	rows, err := helpers.Select("select * from owners where shortname = $1", args, serverConf.DefaultConfig)
+func getOwnerData(query string, args []any) Owner {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
 	defer rows.Close()
 	if err != nil {
 		log.Fatalln("error: ", err)
@@ -295,4 +302,90 @@ func sortCertificates(month Months, data []Certificate) CertificateInfo {
 		Current: current,
 		Next:    next,
 	}
+}
+
+func resolver(url string) string {
+	r := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: time.Millisecond * time.Duration(10000),
+			}
+			// можно подставить любой другой DNS
+			return d.DialContext(ctx, network, "8.8.8.8:53")
+		},
+	}
+	ips, err := r.LookupHost(context.Background(), url)
+	if err != nil {
+		return "--------------------"
+	}
+	return ips[0]
+}
+
+func resolverCollector(url string) ResolveInfo {
+	var status string
+	var wafip, waf string
+	var datenores, wafdate *time.Time
+
+	ip := resolver(url)
+	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+	wafGroup := []string{"185.120.189.120", "185.120.189.211", "185.120.189.214"}
+	datenores, wafdate, wafip, waf = nil, nil, "", ""
+
+	for i := 0; i < len(wafGroup); i++ {
+		if ip == wafGroup[i] {
+			wafip = wafGroup[i]
+			wafdate = &today
+			waf = wafip[12:15]
+			break
+		}
+	}
+
+	if ip == "--------------------" {
+		datenores = &today
+		status = "Error resolve and not curl"
+	}
+
+	return ResolveInfo{
+		Ip:        ip,
+		Status:    status,
+		DateNoRes: datenores,
+		WafDate:   wafdate,
+		Waf:       waf,
+		WafIp:     &wafip,
+		NameUrl:   url,
+	}
+}
+
+func getCertificate(url string) UrlCertificate {
+	conf := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	certificate := UrlCertificate{}
+
+	conn, err := tls.Dial("tcp", url+":443", conf)
+	if err != nil {
+		log.Println("Error in Dial", err)
+		return UrlCertificate{}
+	}
+	defer conn.Close()
+	certs := conn.ConnectionState().PeerCertificates
+	for _, cert := range certs {
+		certificate = UrlCertificate{
+			CommonName: cert.Subject.CommonName,
+			Issuer:     cert.Issuer.CommonName,
+			DateCert:   cert.NotAfter.Format("2006-01-02"),
+		}
+		break
+	}
+	return certificate
+}
+
+func collectInfo(url string) AddResourceCollection {
+	return AddResourceCollection{
+		Resolve:     resolverCollector(url),
+		Certificate: getCertificate(url),
+	}
+
 }

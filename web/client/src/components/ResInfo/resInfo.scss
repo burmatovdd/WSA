@@ -7,6 +7,12 @@
   }
   &__name{
     text-align: center;
+    &--content{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 1.5rem;
+    }
   }
   &__info{
     display: flex;
@@ -41,6 +47,15 @@
   }
 }
 
+.name{
+  &__title{
+    margin: 0 1rem 0 0;
+  }
+  &__text{
+    margin: 0 1rem 0 0;
+  }
+}
+
 .date{
   &__title{
     margin-bottom: 0;
@@ -49,7 +64,7 @@
 
 .user{
   &__title{
-    margin-bottom: 0;
+    margin: 0;
   }
   &__content{
     display: flex;
@@ -63,6 +78,11 @@
       border: none;
       cursor: pointer;
       padding-left: 1rem;
+    }
+    &--text{
+      &-fio{
+        margin-top: 0;
+      }
     }
   }
   &__edit{

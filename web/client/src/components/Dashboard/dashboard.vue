@@ -105,7 +105,6 @@ export default defineComponent({
         date: null,
         email: null,
         fio: null,
-
       },
       isActive: false,
       isOpen: false,
@@ -129,7 +128,6 @@ export default defineComponent({
 
       return httpClient.Post(sendUrl,this.$data.resourceName).then(response =>{
         let resp = JSON.parse(response.data.body)
-
         if (resp.IP === "" || resp.IP === "----------"){
           this.resourceInfo.ip = "undefined"
         }else{

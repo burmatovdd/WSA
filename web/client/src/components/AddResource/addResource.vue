@@ -16,7 +16,7 @@
            v-model="owner"/>
     <p class="form__text">Если данные не известны, оставьте поля пустыми</p>
     <div class="add__result" v-if="isOpen">
-      <p class="add__result--text" v-if="!statusOk">Ресурс добавлен!</p>
+      <p class="add__result--text" v-if="statusOk === true">Ресурс добавлен!</p>
       <p class="add__result--text" v-else>Ошибка!</p>
     </div>
     <button type="button" class="res__button" @click="onSubmit">Добавить</button>
@@ -46,7 +46,7 @@ export default defineComponent({
       user: null,
       owner: null,
       isOpen: false,
-      statusOk: false,
+      statusOk: null,
     }
   },
   methods: {
@@ -59,9 +59,11 @@ export default defineComponent({
         owner: this.$data.owner
       }).then(response =>{
         this.$data.isOpen = true
+        this.$data.statusOk = true
       })
         .catch(error => {
         if (error.response.data.code === 500){
+          this.$data.isOpen = true
           this.$data.statusOk = false
         }
       })
