@@ -136,6 +136,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 		})
 		return
 	}
+
 	res = helpers.Exec("INSERT INTO resource (nameurl,ipfirst,datefirst,datenores,status,wafdate,wafip) VALUES ($1,$2,$3,$4,$5,$6,$7)",
 		[]any{
 			data.Url,
@@ -204,22 +205,26 @@ func (service *PgService) CheckResource(c *gin.Context) {
 			&p.IDOwner,
 			&p.CommonName,
 			&p.Issuer,
-			&p.EndDate)
+			&p.EndDate,
+			&p.ErrBool,
+			&p.WafBool,
+			&p.CertBool)
 
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 		resourceStr = CheckResource{
-			URL:     p.URL.String,
-			IP:      p.IP.String,
-			Status:  checker(p.Err.String),
-			WAF:     checker(p.Waf.String),
-			SSL:     getCertificate(p.URL.String),
-			DateEnd: p.EndDate.String,
-			Email:   getUserData("select * from usdata where idusd = $1", []any{p.IDUser}).Email.String,
-			FIO:     getUserData("select * from usdata where idusd = $1", []any{p.IDUser}).FIO.String,
-			Owner:   getOwnerData("select * from owners where shortname = $1", []any{p.IDOwner}).FullName.String,
+			URL:       p.URL.String,
+			IP:        p.IP.String,
+			Status:    p.ErrBool.Bool,
+			WAF:       p.WafBool.Bool,
+			SSLStatus: p.CertBool.Bool,
+			SSL:       getCertificate(p.URL.String),
+			DateEnd:   p.EndDate.String,
+			Email:     getUserData("select * from usdata where idusd = $1", []any{p.IDUser}).Email.String,
+			FIO:       getUserData("select * from usdata where idusd = $1", []any{p.IDUser}).FIO.String,
+			Owner:     getOwnerData("select * from owners where shortname = $1", []any{p.IDOwner}).FullName.String,
 		}
 	}
 

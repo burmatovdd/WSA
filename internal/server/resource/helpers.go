@@ -123,6 +123,7 @@ func checker(str string) bool {
 		str == "Not Waf" ||
 		str == "Error certificate" ||
 		str == "Error connect" ||
+		str == "" ||
 		str == "--------------------" {
 		return false
 	} else {

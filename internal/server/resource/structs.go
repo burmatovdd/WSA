@@ -105,6 +105,9 @@ type UrlTable struct {
 	CommonName sql.NullString
 	Issuer     sql.NullString
 	EndDate    sql.NullString
+	ErrBool    sql.NullBool
+	WafBool    sql.NullBool
+	CertBool   sql.NullBool
 }
 
 type Owner struct {
@@ -120,15 +123,16 @@ type CheckDataResult struct {
 }
 
 type CheckResource struct {
-	URL     string         `json:"URL"`
-	IP      string         `json:"IP"`
-	Status  bool           `json:"Status"`
-	WAF     bool           `json:"WAF"`
-	SSL     UrlCertificate `json:"SSL"`
-	DateEnd string         `json:"DateEnd"`
-	Email   string         `json:"Email"`
-	FIO     string         `json:"FIO"`
-	Owner   string         `json:"Owner"`
+	URL       string         `json:"URL"`
+	IP        string         `json:"IP"`
+	Status    bool           `json:"Status"`
+	WAF       bool           `json:"WAF"`
+	SSLStatus bool           `json:"SSLStatus"`
+	SSL       UrlCertificate `json:"SSL"`
+	DateEnd   string         `json:"DateEnd"`
+	Email     string         `json:"Email"`
+	FIO       string         `json:"FIO"`
+	Owner     string         `json:"Owner"`
 }
 
 type UpdateData struct {
@@ -166,6 +170,7 @@ type ResolveInfo struct {
 	Waf       string     `json:"waf"`
 	WafIp     *string    `json:"wafIp"`
 	NameUrl   string     `json:"nameurl"`
+	//WafStatus bool       `json:"wafStatus"`
 }
 
 type UrlCertificate struct {
