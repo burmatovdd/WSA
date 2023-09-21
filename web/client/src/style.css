@@ -1,41 +1,36 @@
-body {
+body{
   margin: 0;
   padding: 0;
-  background-color: #31353F;
-  color: white;
-  font-family: Inter, sans-serif;
-  /* overflow: hidden; */
+  background-color: #F8F8F8;
+  font-family: Monsterrat,sans-serif;
 }
-
+@font-face {
+  font-family: Monsterrat;
+  src: local("Monsterrat"),
+  url("fonts/Montserrat.ttf") format("truetype");
+}
 *,
 ::before,
 ::after {
   box-sizing: border-box;
 }
 
-.container{
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translate(0,-50%);
-  padding: 0 1rem;
-  width: 100%;
-  max-width: 1920px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-}
-
-ul{
-  padding: 0;
-  margin: 0;
-}
-
 li{
   list-style-type: none;
 }
 
-/* .main, .header {
-  max-height: 100vh;
-} */
+ul{
+  padding: 0;
+}
+
+a{
+  text-decoration: none;
+}
+
+a.router-link-exact-active{
+  color: black;
+}
+
+svg.router-link-exact-active{
+  stroke: black;
+}

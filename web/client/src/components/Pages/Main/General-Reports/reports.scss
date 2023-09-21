@@ -1,0 +1,8 @@
+.reports{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  .card{
+    width: calc(50% - 2.75rem / 2);
+  }
+}

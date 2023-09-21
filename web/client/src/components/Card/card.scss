@@ -1,0 +1,49 @@
+.card{
+  border: 1px solid #F4F4F5;
+  border-radius: 1rem;
+  //padding: 1rem;
+  &__content{
+    //padding-top: 1.5rem;
+    //padding-bottom: 1.5rem;
+    //padding-left: 1rem;
+    padding: 1rem;
+  }
+}
+
+.content{
+  &__title{
+    display: flex;
+    font-weight: 600;
+    font-size: 18px;
+    &-num{
+      margin: 0;
+      padding-left: .5rem;
+      font-weight: 400;
+      color: #FF4949;
+      &-cert{
+        color: #999999;
+        margin: 0;
+        padding-left: .5rem;
+        font-weight: 400;
+      }
+    }
+  }
+  &__time{
+    margin-top: .5rem;
+    color: #999;
+    font-size: 14px;
+  }
+  &__deactivate,&__waf{
+    color: #999;
+    font-size: 14px;
+    margin-top: 1rem;
+  }
+  &__data{
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    max-width: 32.8rem;
+    max-height: 15.5rem;
+    //overflow-y: scroll;
+  }
+}

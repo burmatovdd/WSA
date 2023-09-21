@@ -1,9 +1,9 @@
-import *as storage from "./storage";
+// import *as storage from "./storage";
 import axios from "axios";
 
 function postRequest(method,url,data){
 
-   return axios.post(url, JSON.stringify(data));
+    return axios.post(url, JSON.stringify(data));
 }
 
 function getRequest(method, url){

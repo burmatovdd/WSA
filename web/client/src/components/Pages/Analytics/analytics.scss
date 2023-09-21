@@ -1,0 +1,29 @@
+.main{
+  &__analytics{
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+.analytics{
+  &__block{
+    max-width: 33.375rem;
+    width: 100%;
+  }
+}
+
+.chart{
+  padding-left: 1rem;
+  &__container{
+    canvas{
+      max-width: 100%;
+    }
+    &-waf{
+      max-width: 20rem;
+      width: 100%;
+    }
+  }
+  &__title{
+    padding-left: 1rem;
+  }
+}

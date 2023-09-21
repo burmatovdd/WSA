@@ -1,0 +1,49 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+
+  &__row {
+    > *:not(script) {
+      padding: 20px 8px 50px 8px;
+    }
+    &:not(:empty) {
+      margin: -20px -8px -50px -8px;
+    }
+  }
+
+  &__title{
+    display: flex;
+    border-top: 1px solid #F4F4F5;
+    &-text{
+      display: flex;
+      flex-direction: column;
+      padding-left: .75rem;
+    }
+  }
+
+  &__logo {
+    display: block;
+    &-img {
+      flex-basis: 97px;
+      width: 40px;
+      height: 30px;
+    }
+  }
+}
+
+.title{
+  &__place{
+    font-size: 13px;
+    color: #ADB0B4;
+    font-weight: 500;
+    margin-top: 0;
+    margin-bottom: 2px;
+  }
+  &__name{
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+  }
+}

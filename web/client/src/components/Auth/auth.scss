@@ -1,0 +1,80 @@
+.auth{
+  display: flex;
+  flex-direction: column;
+  background-color: #FFFFFF;
+  box-shadow: 3px 4px 50px 0px rgba(0, 0, 0, 0.20);
+  min-width: 360px;
+  min-height: 406px;
+  border-radius: 1rem;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  margin: 0 auto;
+  align-items: center;
+
+  &__container{
+    max-width: 360px;
+    padding: 3.75rem 2.625rem;
+  }
+  &__up{
+    display: flex;
+    padding-bottom: 3.75rem;
+  }
+}
+
+.up{
+  &__logo{
+    padding-right: 1rem;
+    &-img{
+      width: 63px;
+      height: 47px;
+    }
+  }
+  &__title{
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 500;
+    &-place{
+      color: #ADB0B4;
+      padding-bottom: .5rem;
+    }
+  }
+}
+
+.form{
+  display: flex;
+  flex-direction: column;
+  &__input{
+    height: 2.5rem;
+    border-radius: .75rem;
+    border: 1px solid #D4D5D8;
+    padding-left: .5rem;
+    &-login{
+      margin-bottom: 1rem;
+    }
+    &-password{
+      margin-bottom: 2rem;
+    }
+  }
+  &__button{
+    background-color: #FF4949;
+    border: none;
+    border-radius: .75rem;
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 12px;
+    cursor: pointer;
+  }
+}
+
+.error__message{
+  font-size: 12px;
+  color: #FF4949;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.invalidCred{
+  display: none;
+}

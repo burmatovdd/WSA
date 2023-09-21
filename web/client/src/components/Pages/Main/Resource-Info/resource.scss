@@ -1,0 +1,18 @@
+.resource {
+  width: 500px;
+  &__thead {
+    text-align: left;
+  }
+  &__th {
+    font-size: 14px;
+    font-weight: 500;
+
+    &--name {
+      color: #999999;
+    }
+
+    &--value {
+      color: #000000;
+    }
+  }
+}

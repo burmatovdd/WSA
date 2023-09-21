@@ -1,0 +1,11 @@
+.tile{
+  background-color: #FFFFFF;
+  min-width: 1132px;
+  min-height: 100px;
+  border-radius: 1rem;
+  box-shadow: 3px 4px 50px 0px rgba(0, 0, 0, 0.20);
+  //margin: 0 auto 24px;
+  &__content{
+    padding: 2.5rem 2rem;
+  }
+}

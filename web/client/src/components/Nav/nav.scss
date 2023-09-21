@@ -1,0 +1,61 @@
+.nav {
+  &__row {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    padding: 0;
+
+    >*:not(script) {
+      padding: 22.5px 8px;
+    }
+
+    &:not(:empty) {
+      margin: -22.5px -8px;
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #F4F4F5;
+
+    &-row {
+      display: flex;
+      align-items: center;
+
+      >*:not(script) {
+        padding: 10px;
+      }
+
+      &:not(:empty) {
+        margin: -10px;
+      }
+
+      &-link{
+        display: flex;
+        align-items: center;
+        color: #999;
+      }
+    }
+  }
+
+  &__text {
+    margin: 0 0 0 .5rem;
+  }
+
+  &__button {
+    background-color: #FFFFFF;
+    border: none;
+    cursor: pointer;
+    &-img {
+      width: 40px;
+    }
+  }
+  &__img{
+    stroke: #999999;
+  }
+}
+
+.router-link-exact-active .nav__img{
+  stroke: black;
+}

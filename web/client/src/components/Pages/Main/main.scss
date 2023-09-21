@@ -1,0 +1,20 @@
+.main{
+  &__dashboard{
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+.card{
+  &__title{
+    font-weight: 600;
+    //padding: 1.5rem 0 0 1rem;
+
+  }
+  //&__content{
+  //  &-disable{
+  //    width: 100%;
+  //  }
+  //}
+}

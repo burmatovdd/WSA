@@ -1,9 +1,15 @@
 <template>
   <div class="sidebar">
     <div class='sidebar__row'>
-      <a href="/dashboard" class="sidebar__logo">
-        <img src="../../img/logo.png" alt="logo" width="97" height="146" class="sidebar__logo-img">
-      </a>
+      <div class="sidebar__title">
+        <a href="/dashboard" class="sidebar__logo">
+          <img src="../../images/logo.svg" alt="logo" class="sidebar__logo-img">
+        </a>
+        <div class="sidebar__title-text">
+          <p class="title__place">МОСКОВСКАЯ ОБЛАСТЬ</p>
+          <p class="title__name">WSA</p>
+        </div>
+      </div>
       <Nav/>
     </div>
   </div>
@@ -21,5 +27,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@use "sidabar";
+@use 'sidebar';
 </style>
