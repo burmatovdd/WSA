@@ -117,7 +117,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 
 	collection := collectInfo(data.Url)
 	res := helpers.Exec(
-		"INSERT INTO url (nameurl,ip,err,waf,idusd,idowner,commonname,issuer,datecert) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+		"INSERT INTO url (nameurl,ip,err,waf,idusd,idowner,commonname,issuer,datecert, errbool, wafbool, certbool) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
 		[]any{
 			collection.Resolve.NameUrl,
 			collection.Resolve.Ip,
@@ -128,6 +128,9 @@ func (service *PgService) AddResource(c *gin.Context) {
 			collection.Certificate.CommonName,
 			collection.Certificate.Issuer,
 			collection.Certificate.DateCert,
+			collection.Resolve.ErrStatus,
+			collection.Resolve.WafStatus,
+			collection.Certificate.CertStatus,
 		},
 		serverConf.DefaultConfig)
 	if !res {

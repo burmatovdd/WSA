@@ -326,6 +326,8 @@ func resolver(url string) string {
 func resolverCollector(url string) ResolveInfo {
 	var status string
 	var wafip, waf string
+	var wafbool bool
+	var errStatus bool
 	var datenores, wafdate *time.Time
 
 	ip := resolver(url)
@@ -347,12 +349,26 @@ func resolverCollector(url string) ResolveInfo {
 		status = "Error resolve and not curl"
 	}
 
+	if waf == "Not Waf" || waf == "" || waf == "Error connect" {
+		wafbool = false
+	} else {
+		wafbool = true
+	}
+
+	if status != "Ok" {
+		errStatus = false
+	} else {
+		errStatus = true
+	}
+
 	return ResolveInfo{
 		Ip:        ip,
 		Status:    status,
+		ErrStatus: errStatus,
 		DateNoRes: datenores,
 		WafDate:   wafdate,
 		Waf:       waf,
+		WafStatus: wafbool,
 		WafIp:     &wafip,
 		NameUrl:   url,
 	}
@@ -362,6 +378,8 @@ func getCertificate(url string) UrlCertificate {
 	conf := &tls.Config{
 		InsecureSkipVerify: true,
 	}
+
+	var certStatus bool
 
 	certificate := UrlCertificate{}
 
@@ -373,10 +391,16 @@ func getCertificate(url string) UrlCertificate {
 	defer conn.Close()
 	certs := conn.ConnectionState().PeerCertificates
 	for _, cert := range certs {
+		if cert.Issuer.CommonName == "--------------------" || cert.Issuer.CommonName == "" {
+			certStatus = false
+		} else {
+			certStatus = true
+		}
 		certificate = UrlCertificate{
 			CommonName: cert.Subject.CommonName,
 			Issuer:     cert.Issuer.CommonName,
 			DateCert:   cert.NotAfter.Format("2006-01-02"),
+			CertStatus: certStatus,
 		}
 		break
 	}

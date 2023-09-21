@@ -165,18 +165,20 @@ type Months struct {
 type ResolveInfo struct {
 	Ip        string     `json:"ip"`
 	Status    string     `json:"status"`
+	ErrStatus bool       `json:"errStatus"`
 	DateNoRes *time.Time `json:"dateNoRes"`
 	WafDate   *time.Time `json:"wafDate"`
 	Waf       string     `json:"waf"`
 	WafIp     *string    `json:"wafIp"`
 	NameUrl   string     `json:"nameurl"`
-	//WafStatus bool       `json:"wafStatus"`
+	WafStatus bool       `json:"wafStatus"`
 }
 
 type UrlCertificate struct {
 	CommonName string `json:"common_name"`
 	Issuer     string `json:"issuer"`
 	DateCert   string `json:"date_cert"`
+	CertStatus bool   `json:"certStatus"`
 }
 
 type AddResourceCollection struct {
