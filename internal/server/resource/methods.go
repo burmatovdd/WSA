@@ -391,7 +391,10 @@ func (service *PgService) GetCertificates(c *gin.Context) {
 			&p.IDOwner,
 			&p.CommonName,
 			&p.Issuer,
-			&p.EndDate)
+			&p.EndDate,
+			&p.ErrBool,
+			&p.WafBool,
+			&p.CertBool)
 
 		if err != nil {
 			fmt.Println(err)
