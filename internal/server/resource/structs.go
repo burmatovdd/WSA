@@ -2,10 +2,17 @@ package resource
 
 import (
 	"database/sql"
+	"github.com/dgrijalva/jwt-go"
 	"time"
 )
 
 type Login struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+type TokenClaims struct {
+	jwt.StandardClaims
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }

@@ -28,9 +28,11 @@ func (service *PgService) Login(c *gin.Context) {
 		return
 	}
 
+	token, _ := generateToken(data.Login, string(hashPassword(data.Password)))
+
 	c.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"body": true,
+		"code":  http.StatusOK,
+		"token": token,
 	})
 }
 

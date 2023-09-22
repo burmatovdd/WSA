@@ -8,6 +8,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net"
 	"strconv"
@@ -116,19 +118,6 @@ func checkData(args URL) CheckDataResult {
 		return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: owner.ID, Result: true}
 	}
 	return CheckDataResult{UserID: sql.NullInt32{}, OwnerId: sql.NullInt32{}, Result: true}
-}
-
-func checker(str string) bool {
-	if str == "Error resolve and not curl" ||
-		str == "Not Waf" ||
-		str == "Error certificate" ||
-		str == "Error connect" ||
-		str == "" ||
-		str == "--------------------" {
-		return false
-	} else {
-		return true
-	}
 }
 
 func toJson(variable any) []byte {
@@ -413,4 +402,30 @@ func collectInfo(url string) AddResourceCollection {
 		Certificate: getCertificate(url),
 	}
 
+}
+
+func hashPassword(password string) []byte {
+	pass := []byte(password)
+	cost := 10
+
+	hash, err := bcrypt.GenerateFromPassword(pass, cost)
+	if err != nil {
+		log.Fatalln("err: ", err)
+	}
+
+	return hash
+}
+
+func generateToken(login string, password string) (string, error) {
+	var signingKey = "B0M9H%nWrF#wOhr6yKhn#h%5Db"
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, &TokenClaims{
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(12 * time.Hour).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+		login, password,
+	})
+
+	return token.SignedString([]byte(signingKey))
 }
