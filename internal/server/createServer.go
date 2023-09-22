@@ -24,6 +24,8 @@ func (service *Service) CreateServer() {
 		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers, Authorization"},
 	}))
 
+	router.Group("/api", method.UserIdentity)
+
 	router.GET("/api/statistic", method.GetStat)
 	router.GET("/api/week-statistic", method.GetWeekStat)
 	router.GET("/api/general-statistic", method.GetGeneralStat)

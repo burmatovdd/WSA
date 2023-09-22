@@ -15,6 +15,7 @@ type TokenClaims struct {
 	jwt.StandardClaims
 	Login    string `json:"login"`
 	Password string `json:"password"`
+	Access   bool   `json:"access"`
 }
 
 type UserAuth struct {

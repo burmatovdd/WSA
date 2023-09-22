@@ -7,11 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"net/http"
+	"strings"
 	"time"
 )
 
 func (service *PgService) Login(c *gin.Context) {
 	var data Login
+	var access bool
 	err := c.BindJSON(&data)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -20,7 +22,7 @@ func (service *PgService) Login(c *gin.Context) {
 		return
 	}
 
-	if !checkUserInDB("select * from users where emailus = $1 and passwordus = $2", []any{data.Login, data.Password}) {
+	if !checkUserInDB("select * from users where emailus = $1 and passwordus = $2 and accessus = $3", []any{data.Login, data.Password, access}) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"body": false,
@@ -28,7 +30,7 @@ func (service *PgService) Login(c *gin.Context) {
 		return
 	}
 
-	token, _ := generateToken(data.Login, string(hashPassword(data.Password)))
+	token, _ := generateToken(data.Login, string(hashPassword(data.Password)), access)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
@@ -412,4 +414,35 @@ func (service *PgService) GetCertificates(c *gin.Context) {
 		"code": http.StatusOK,
 		"body": string(toJson(sortCertificates(month, certificates))),
 	})
+}
+
+func (service *PgService) UserIdentity(c *gin.Context) {
+	header := c.GetHeader("Authorization")
+	if header == "" {
+		fmt.Println("empty auth header")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": http.StatusUnauthorized,
+		})
+		return
+	}
+
+	headerParts := strings.Split(header, " ")
+	if len(headerParts) != 2 {
+		fmt.Println("invalid auth string")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": http.StatusUnauthorized,
+		})
+		return
+	}
+
+	userLogin, err := parseToken(headerParts[1])
+	if err != nil {
+		fmt.Println("invalid auth string")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": http.StatusUnauthorized,
+		})
+		return
+	}
+
+	c.Set("userLogin", userLogin)
 }

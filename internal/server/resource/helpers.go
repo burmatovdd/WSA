@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -14,6 +15,10 @@ import (
 	"net"
 	"strconv"
 	"time"
+)
+
+const (
+	signingKey = "B0M9H%nWrF#wOhr6yKhn#h%5Db"
 )
 
 func checkUserInDB(query string, args []any) bool {
@@ -416,16 +421,35 @@ func hashPassword(password string) []byte {
 	return hash
 }
 
-func generateToken(login string, password string) (string, error) {
-	var signingKey = "B0M9H%nWrF#wOhr6yKhn#h%5Db"
+func generateToken(login string, password string, access bool) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, &TokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(12 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
-		login, password,
+		login, password, access,
 	})
 
 	return token.SignedString([]byte(signingKey))
+}
+
+func parseToken(accessToken string) (string, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+
+		return []byte(signingKey), nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(*TokenClaims)
+	if !ok {
+		return "", errors.New("token claims are not of type *tokenClaims")
+	}
+
+	return claims.Login, nil
 }
