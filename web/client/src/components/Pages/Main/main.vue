@@ -10,7 +10,7 @@
       <Certificates/>
     </main>
   </div>
-  <Dialog :open="openedModalDialog" @close-modal-dialog="closeModalDialog">
+  <DialogComp :open="openedModalDialog" @close-modal-dialog="closeModalDialog">
     <Card>
       <h4 class="card__title">
         <template v-if="!this.$data.resourceInfo.found">Ресурс не найден</template>
@@ -19,7 +19,7 @@
       <Adder v-if="!this.$data.resourceInfo.found" :resource="this.$data.resourceInfo.resName"/>
       <ResourceInfo v-else :resource="this.$data.resourceInfo"/>
     </Card>
-  </Dialog>
+  </DialogComp>
 </template>
 
 <script>
@@ -28,7 +28,7 @@ import Checker from "./Check-Resource/checker.vue";
 import Info from "./General-Info/info.vue";
 import Reports from "./General-Reports/reports.vue";
 import Certificates from "./Certificates/certificates.vue";
-import Dialog from "./Modal/dialog.vue";
+import DialogComp from "./Modal/dialog.vue";
 import Adder from "./Add-Resource/adder.vue";
 import ResourceInfo from "./Resource-Info/resource.vue";
 import Card from "../../Card/card.vue";
@@ -41,7 +41,7 @@ export default defineComponent({
     Info,
     Reports,
     Certificates,
-    Dialog,
+    DialogComp,
     Adder,
     ResourceInfo,
     Card

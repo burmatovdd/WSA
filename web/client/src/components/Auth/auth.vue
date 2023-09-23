@@ -84,6 +84,7 @@ export default defineComponent({
       let sendUrl = "http://localhost:8080/api/login";
 
       httpClient.Post(sendUrl, this.user).then(response => {
+        console.info(response)
         this.$router.push('/dashboard');
       }).catch(err => {
         this.isActive = !this.isActive;

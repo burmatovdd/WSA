@@ -15,6 +15,7 @@ func (service *PgService) Login(c *gin.Context) {
 	var data Login
 	var access bool
 	err := c.BindJSON(&data)
+	fmt.Println(data)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

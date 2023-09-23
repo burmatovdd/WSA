@@ -18,7 +18,7 @@
 <script>
 import { defineComponent } from 'vue';
 export default defineComponent({
-  name: "dialog",
+  name: "dialogcomp",
   props: {
     open: {
       type: Boolean,

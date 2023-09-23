@@ -65,7 +65,6 @@ export default defineComponent({
 
       return httpClient.Post(sendUrl,this.$data.resource).then(response =>{
         let resp = JSON.parse(response.data.body)
-        console.info("from checker: ",resp)
         if (resp.IP === "" || resp.IP === "----------"){
           this.resourceInfo.ip = "undefined"
         }else{
