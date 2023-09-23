@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	signingKey = "B0M9H%nWrF#wOhr6yKhn#h%5Db"
+	signingKey = "qrkjk#4#%35FSFJlja#4353KSFjH"
 )
 
 func checkUserInDB(query string, args []any) bool {
@@ -51,6 +51,36 @@ func checkUserInDB(query string, args []any) bool {
 		return false
 	}
 	return true
+}
+
+func getUserAccessInDB(query string, args []any) bool {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	us := UserAuth{}
+
+	for rows.Next() {
+		p := UserAuth{}
+		err = rows.Scan(
+			&p.ID,
+			&p.Email,
+			&p.Password,
+			&p.Access,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		us = UserAuth{
+			p.ID,
+			p.Email,
+			p.Password,
+			p.Access,
+		}
+	}
+
+	return us.Access
 }
 
 func checkResourceInDB(args []any) bool {
@@ -423,7 +453,7 @@ func hashPassword(password string) []byte {
 
 func generateToken(login string, password string, access bool) (string, error) {
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, &TokenClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(12 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),

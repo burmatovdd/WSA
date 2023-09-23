@@ -22,7 +22,7 @@ type UserAuth struct {
 	ID       int    `json:"id"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Access   string `json:"access"`
+	Access   bool   `json:"access"`
 }
 
 type User struct {

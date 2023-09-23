@@ -22,7 +22,7 @@ func (service *PgService) Login(c *gin.Context) {
 		return
 	}
 
-	if !checkUserInDB("select * from users where emailus = $1 and passwordus = $2 and accessus = $3", []any{data.Login, data.Password, access}) {
+	if !checkUserInDB("select * from users where emailus = $1 and passwordus = $2;", []any{data.Login, data.Password}) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"body": false,
@@ -30,12 +30,15 @@ func (service *PgService) Login(c *gin.Context) {
 		return
 	}
 
+	access = getUserAccessInDB("select accessus from users where emailus = $1 and passwordus = $2;", []any{data.Login, data.Password})
+
 	token, _ := generateToken(data.Login, string(hashPassword(data.Password)), access)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"token": token,
 	})
+
 }
 
 func (service *PgService) GetStat(c *gin.Context) {
