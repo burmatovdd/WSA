@@ -33,6 +33,8 @@ import Adder from "./Add-Resource/adder.vue";
 import ResourceInfo from "./Resource-Info/resource.vue";
 import Card from "../../Card/card.vue";
 import {defineComponent} from 'vue';
+import * as storage from "../../../storage.js";
+import router from "../../../router.js";
 export default defineComponent({
   name: "main-page",
   components: {
@@ -64,6 +66,12 @@ export default defineComponent({
       this.$data.openedModalDialog = false;
     }
   },
+  // mounted() {
+  //   let token = storage.get("token");
+  //   if (token == null){
+  //     router.push("/");
+  //   }
+  // }
 })
 </script>
 

@@ -38,6 +38,7 @@
 import {defineComponent} from 'vue';
 import {Form, Field, ErrorMessage} from 'vee-validate';
 import *as httpClient from "../../httpClient";
+import *as storage from "../../storage";
 
 export default defineComponent({
   name: "auth",
@@ -84,7 +85,8 @@ export default defineComponent({
       let sendUrl = "http://localhost:8080/api/login";
 
       httpClient.Post(sendUrl, this.user).then(response => {
-        console.info(response)
+        console.info("response: ",response.data.token)
+        storage.set("token",response.data.token)
         this.$router.push('/dashboard');
       }).catch(err => {
         this.isActive = !this.isActive;

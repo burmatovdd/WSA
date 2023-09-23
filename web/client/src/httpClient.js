@@ -1,9 +1,12 @@
 // import *as storage from "./storage";
 import axios from "axios";
+import * as storage from "./storage.js";
 
 function postRequest(method,url,data){
 
-    return axios.post(url, JSON.stringify(data));
+    return axios.post(url, JSON.stringify(data), {headers:{
+            Authorization: storage.getToken()
+        }});
 }
 
 function getRequest(method, url){
