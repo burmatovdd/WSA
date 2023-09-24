@@ -482,31 +482,31 @@ func (service *PgService) GetStatistic(c *gin.Context) {
 			continue
 		}
 
-		stats.AllURL = append(stats.AllURL, p.URL.String)
+		stats.AllURL = append(stats.AllURL, Resource{p.URL.String})
 	}
 
-	rows, err = helpers.Select("select * from owners", nil, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-	}
-
-	for rows.Next() {
-		p := Owner{}
-		err := rows.Scan(
-			&p.ID,
-			&p.FullName,
-			&p.ShortName)
-
-		if err != nil {
-			continue
-		}
-
-		stats.Owners = append(stats.Owners, p.FullName.String)
-	}
+	//rows, err = helpers.Select("select * from owners", nil, serverConf.DefaultConfig)
+	//defer rows.Close()
+	//
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, gin.H{
+	//		"code": http.StatusInternalServerError,
+	//	})
+	//}
+	//
+	//for rows.Next() {
+	//	p := Owner{}
+	//	err := rows.Scan(
+	//		&p.ID,
+	//		&p.FullName,
+	//		&p.ShortName)
+	//
+	//	if err != nil {
+	//		continue
+	//	}
+	//
+	//	stats.Owners = append(stats.Owners, p.FullName.String)
+	//}
 
 	rows, err = helpers.Select("select * from url where wafbool = true;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
@@ -539,7 +539,7 @@ func (service *PgService) GetStatistic(c *gin.Context) {
 			continue
 		}
 
-		stats.WafURL = append(stats.WafURL, p.URL.String)
+		stats.WafURL = append(stats.WafURL, Resource{p.URL.String})
 	}
 
 	rows, err = helpers.Select("select * from url where errbool = false;", nil, serverConf.DefaultConfig)
@@ -573,7 +573,7 @@ func (service *PgService) GetStatistic(c *gin.Context) {
 			continue
 		}
 
-		stats.ErrURL = append(stats.ErrURL, p.URL.String)
+		stats.ErrURL = append(stats.ErrURL, Resource{p.URL.String})
 	}
 
 	c.JSON(http.StatusOK, gin.H{

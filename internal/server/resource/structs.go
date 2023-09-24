@@ -196,8 +196,12 @@ type AddResourceCollection struct {
 
 type AllStats struct {
 	//GenStats GeneralStat `json:"genStats"`
-	AllURL []string `json:"allURL"`
-	Owners []string `json:"owners"`
-	WafURL []string `json:"wafURL"`
-	ErrURL []string `json:"errURL"`
+	AllURL []Resource `json:"allURL"`
+	//Owners []string `json:"owners"`
+	WafURL []Resource `json:"wafURL"`
+	ErrURL []Resource `json:"errURL"`
+}
+
+type Resource struct {
+	Resource string `json:"resource"`
 }
