@@ -42,7 +42,7 @@ func (service *PgService) Login(c *gin.Context) {
 }
 
 func (service *PgService) GetStat(c *gin.Context) {
-	rows, err := helpers.Select("select * from stat", nil, serverConf.DefaultConfig)
+	rows, err := helpers.Select("select allservers, erservers, withwaf from stat", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 
 	if err != nil {
@@ -320,184 +320,54 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 }
 
 func (service *PgService) GetGeneralStat(c *gin.Context) {
-	var stats AllStats
+	var stats GeneralStat
 	rows, err := helpers.Select("select count(*) from url;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 	for rows.Next() {
-		if err = rows.Scan(&stats.GenStats.Resources); err != nil {
+		if err = rows.Scan(&stats.Resources); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code": http.StatusBadRequest,
 			})
 			return
 		}
-		fmt.Println(stats.GenStats.Resources)
-	}
-
-	rows, err = helpers.Select("select * from url;", nil, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-		return
-	}
-
-	for rows.Next() {
-		p := UrlTable{}
-		err := rows.Scan(
-			&p.ID,
-			&p.URL,
-			&p.IP,
-			&p.Err,
-			&p.Waf,
-			&p.IDUser,
-			&p.IDOwner,
-			&p.CommonName,
-			&p.Issuer,
-			&p.EndDate,
-			&p.ErrBool,
-			&p.WafBool,
-			&p.CertBool)
-		if err != nil {
-			continue
-		}
-
-		stats.AllURL = append(stats.AllURL, p.URL.String)
 	}
 
 	rows, err = helpers.Select("select count(*) from owners", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 	for rows.Next() {
-		if err = rows.Scan(&stats.GenStats.Owners); err != nil {
+		if err = rows.Scan(&stats.Owners); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code": http.StatusBadRequest,
 			})
 			return
 		}
-		fmt.Println(stats.GenStats.Owners)
-	}
-
-	rows, err = helpers.Select("select * from owners", nil, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-	}
-
-	for rows.Next() {
-		p := Owner{}
-		err := rows.Scan(
-			&p.ID,
-			&p.FullName,
-			&p.ShortName)
-
-		if err != nil {
-			continue
-		}
-
-		stats.Owners = append(stats.Owners, p.FullName.String)
 	}
 
 	rows, err = helpers.Select("select count(*) from url where wafbool = true;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 	for rows.Next() {
-		if err = rows.Scan(&stats.GenStats.Waf); err != nil {
+		if err = rows.Scan(&stats.Waf); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code": http.StatusBadRequest,
 			})
 			return
 		}
-		fmt.Println(stats.GenStats.Waf)
-	}
-
-	rows, err = helpers.Select("select * from url where wafbool = true;", nil, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-		return
-	}
-
-	for rows.Next() {
-		p := UrlTable{}
-		err := rows.Scan(
-			&p.ID,
-			&p.URL,
-			&p.IP,
-			&p.Err,
-			&p.Waf,
-			&p.IDUser,
-			&p.IDOwner,
-			&p.CommonName,
-			&p.Issuer,
-			&p.EndDate,
-			&p.ErrBool,
-			&p.WafBool,
-			&p.CertBool)
-
-		if err != nil {
-			continue
-		}
-
-		stats.WafURL = append(stats.WafURL, p.URL.String)
 	}
 
 	rows, err = helpers.Select("select count(*) from url where errbool = false;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 	for rows.Next() {
-		if err = rows.Scan(&stats.GenStats.DeactivateResource); err != nil {
+		if err = rows.Scan(&stats.DeactivateResource); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code": http.StatusBadRequest,
 			})
 			return
 		}
-		fmt.Println(stats.GenStats.DeactivateResource)
 	}
-
-	rows, err = helpers.Select("select * from url where errbool = false;", nil, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-		return
-	}
-
-	for rows.Next() {
-		p := UrlTable{}
-		err := rows.Scan(
-			&p.ID,
-			&p.URL,
-			&p.IP,
-			&p.Err,
-			&p.Waf,
-			&p.IDUser,
-			&p.IDOwner,
-			&p.CommonName,
-			&p.Issuer,
-			&p.EndDate,
-			&p.ErrBool,
-			&p.WafBool,
-			&p.CertBool)
-
-		if err != nil {
-			continue
-		}
-
-		stats.ErrURL = append(stats.ErrURL, p.URL.String)
-	}
-
-	//	fmt.Println("сука статы блять ", stats.AllURL)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": string(toJson(AllStats{stats.GenStats, stats.AllURL, stats.Owners, stats.WafURL, stats.ErrURL})),
+		"body": string(toJson(stats)),
 	})
 
 }
@@ -577,4 +447,137 @@ func (service *PgService) UserIdentity(c *gin.Context) {
 	}
 
 	c.Set("userLogin", userLogin)
+}
+
+func (service *PgService) GetStatistic(c *gin.Context) {
+	var stats AllStats
+
+	rows, err := helpers.Select("select * from url;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	for rows.Next() {
+		p := UrlTable{}
+		err := rows.Scan(
+			&p.ID,
+			&p.URL,
+			&p.IP,
+			&p.Err,
+			&p.Waf,
+			&p.IDUser,
+			&p.IDOwner,
+			&p.CommonName,
+			&p.Issuer,
+			&p.EndDate,
+			&p.ErrBool,
+			&p.WafBool,
+			&p.CertBool)
+		if err != nil {
+			continue
+		}
+
+		stats.AllURL = append(stats.AllURL, p.URL.String)
+	}
+
+	rows, err = helpers.Select("select * from owners", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+	}
+
+	for rows.Next() {
+		p := Owner{}
+		err := rows.Scan(
+			&p.ID,
+			&p.FullName,
+			&p.ShortName)
+
+		if err != nil {
+			continue
+		}
+
+		stats.Owners = append(stats.Owners, p.FullName.String)
+	}
+
+	rows, err = helpers.Select("select * from url where wafbool = true;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	for rows.Next() {
+		p := UrlTable{}
+		err := rows.Scan(
+			&p.ID,
+			&p.URL,
+			&p.IP,
+			&p.Err,
+			&p.Waf,
+			&p.IDUser,
+			&p.IDOwner,
+			&p.CommonName,
+			&p.Issuer,
+			&p.EndDate,
+			&p.ErrBool,
+			&p.WafBool,
+			&p.CertBool)
+
+		if err != nil {
+			continue
+		}
+
+		stats.WafURL = append(stats.WafURL, p.URL.String)
+	}
+
+	rows, err = helpers.Select("select * from url where errbool = false;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	for rows.Next() {
+		p := UrlTable{}
+		err := rows.Scan(
+			&p.ID,
+			&p.URL,
+			&p.IP,
+			&p.Err,
+			&p.Waf,
+			&p.IDUser,
+			&p.IDOwner,
+			&p.CommonName,
+			&p.Issuer,
+			&p.EndDate,
+			&p.ErrBool,
+			&p.WafBool,
+			&p.CertBool)
+
+		if err != nil {
+			continue
+		}
+
+		stats.ErrURL = append(stats.ErrURL, p.URL.String)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": string(toJson(stats)),
+	})
 }
