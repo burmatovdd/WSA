@@ -82,7 +82,7 @@ export default defineComponent({
       return true;
     },
     Auth: async function (){
-      let sendUrl = "http://localhost:8080/api/login";
+      let sendUrl = "http://localhost:8080/login";
 
       httpClient.Post(sendUrl, this.user).then(response => {
         console.info("response: ",response.data.token)

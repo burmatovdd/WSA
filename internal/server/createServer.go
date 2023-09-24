@@ -24,14 +24,14 @@ func (service *Service) CreateServer() {
 		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers, Authorization"},
 	}))
 
-	router.Group("/api", method.UserIdentity)
+	//api := router.Group("/api", method.UserIdentity)
 
 	router.GET("/api/statistic", method.GetStat)
 	router.GET("/api/week-statistic", method.GetWeekStat)
 	router.GET("/api/general-statistic", method.GetGeneralStat)
 	router.GET("/api/certificates", method.GetCertificates)
 
-	router.POST("/api/login", method.Login)
+	router.POST("/login", method.Login)
 	router.POST("/api/add-resource", method.AddResource)
 	router.POST("/api/check-resource", method.CheckResource)
 	router.POST("/api/delete-resource", method.DeleteResource)

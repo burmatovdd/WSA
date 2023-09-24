@@ -193,3 +193,11 @@ type AddResourceCollection struct {
 	Resolve     ResolveInfo    `json:"resolve"`
 	Certificate UrlCertificate `json:"certificate"`
 }
+
+type AllStats struct {
+	GenStats GeneralStat `json:"genStats"`
+	AllURL   []string    `json:"allURL"`
+	Owners   []string    `json:"owners"`
+	WafURL   []string    `json:"wafURL"`
+	ErrURL   []string    `json:"errURL"`
+}
