@@ -2,19 +2,19 @@
 <Tile>
   <div class="info">
     <Card>
-      <div class="content__title">Общее количество ресурсов - <p class="content__title-num">{{this.resources}}</p></div>
+      <div class="content__title">Общее количество ресурсов - <p class="content__title-num">{{this.genStats.stat.resources}}</p></div>
       <div class="content__time">Данные актуальны на {{this.now}}</div>
     </Card>
     <Card>
-      <div class="content__title">Общее количество неактивных ресурсов - <p class="content__title-num">{{this.deactivatedResources}}</p></div>
+      <div class="content__title">Общее количество неактивных ресурсов - <p class="content__title-num">{{this.genStats.stat.deactivateResource}}</p></div>
       <div class="content__time">Данные актуальны на {{this.now}}</div>
     </Card>
     <Card>
-      <div class="content__title">Ресурсов за WAF - <p class="content__title-num">{{this.waf}}</p></div>
+      <div class="content__title">Ресурсов за WAF - <p class="content__title-num">{{this.genStats.stat.waf}}</p></div>
       <div class="content__time">Данные актуальны на {{this.now}}</div>
     </Card>
     <Card>
-      <div class="content__title">Клиентов - <p class="content__title-num">{{this.owners}}</p></div>
+      <div class="content__title">Клиентов - <p class="content__title-num">{{this.genStats.stat.owners}}</p></div>
       <div class="content__time">Данные актуальны на {{this.now}}</div>
     </Card>
   </div>
@@ -36,10 +36,18 @@ export default defineComponent({
   data: function (){
     var now = moment().format("DD-MM-YYYY HH:mm");
     return{
-      resources: null,
-      deactivatedResources: null,
-      waf: null,
-      owners: null,
+      genStats:{
+        stat: {
+          resources: null,
+          deactivateResource: null,
+          waf: null,
+          owners: null,
+        },
+        allUrl: [],
+        errUrl: [],
+        wafUrl: [],
+        owners: [],
+      },
       now,
     }
   },
@@ -47,10 +55,11 @@ export default defineComponent({
     let sendUrl = "http://localhost:8080/api/general-statistic"
     httpClient.Get(sendUrl).then(response => {
       let resp = JSON.parse(response.data.body)
-      this.resources = resp.resources
-      this.deactivatedResources = resp.deactivateResource
-      this.owners = resp.owners
-      this.waf = resp.waf
+      this.genStats.stat = resp.genStats
+      this.genStats.allUrl = resp.allURL
+      this.genStats.errUrl = resp.errURL
+      this.genStats.wafUrl = resp.wafURL
+      this.genStats.owners = resp.owners
     })
   }
 })

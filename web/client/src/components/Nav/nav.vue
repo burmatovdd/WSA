@@ -22,6 +22,25 @@
       </li>
       <li class="nav__item">
         <div class="nav__item-row">
+          <RouterLink to="/statistic" class="nav__item-row-link">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="nav__img">
+              <g clip-path="url(#clip0_7148_3387)">
+                <path d="M12 4L4 8L12 12L20 8L12 4Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 12L12 16L20 12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 16L12 20L20 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_7148_3387">
+                  <rect width="24" height="24" fill="white"/>
+                </clipPath>
+              </defs>
+            </svg>
+            <p class="nav__text">Статистика</p>
+          </RouterLink>
+        </div>
+      </li>
+      <li class="nav__item">
+        <div class="nav__item-row">
           <RouterLink to="/reports" class="nav__item-row-link">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="nav__img">
               <g clip-path="url(#clip0_459_2114)">
