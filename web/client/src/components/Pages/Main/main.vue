@@ -66,12 +66,6 @@ export default defineComponent({
       this.$data.openedModalDialog = false;
     }
   },
-  // mounted() {
-  //   let token = storage.get("token");
-  //   if (token == null){
-  //     router.push("/");
-  //   }
-  // }
 })
 </script>
 

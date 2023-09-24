@@ -9,7 +9,7 @@
           <div class="reports__content card__content">
             <div class="content__title">Ресурсы</div>
             <div class="content__data reports__content-data">
-              <List :no-resolve="this.currentNoRes" :new-waf="this.currentNewWaf"/>
+              <List :all-resources="this.allUrl"/>
             </div>
           </div>
         </Card>
@@ -24,6 +24,7 @@ import Sidebar from "../../Sidebar/sidebar.vue";
 import Block from "../../Tile/tile.vue";
 import Card from "../../Card/card.vue";
 import List from "./list/list.vue";
+import * as httpClient from "../../../httpClient.js";
 export default defineComponent( {
   name: "statistic",
   components: {
@@ -31,6 +32,24 @@ export default defineComponent( {
     Block,
     Card,
     List,
+  },
+  data: function (){
+    return{
+      allUrl: [],
+      errUrl: [],
+      wafUrl: [],
+    }
+  },
+  mounted() {
+    let sendUrl = "http://localhost:8080/api/statistic";
+
+    httpClient.Get(sendUrl).then(response => {
+      let resp = JSON.parse(response.data.body)
+      console.info(resp)
+      this.allUrl = resp.allURL
+      this.errUrl = resp.errURL
+      this.wafUrl = resp.wafURL
+    })
   }
 })
 </script>

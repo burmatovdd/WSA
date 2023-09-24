@@ -5,10 +5,9 @@
     </div>
     <div class="data__list">
       <ul>
-        <li v-for="item in noResolve">
+        <li v-for="item in info">
           <div class="data__content">
-            <p class="data__content-resource">{{ item.resource }}</p>
-            <p class="data__content-date">{{ item.date }}</p>
+            <p class="data__content-resource">{{ item }}</p>
           </div>
         </li>
       </ul>
@@ -22,8 +21,7 @@ import {defineComponent} from 'vue';
 export default defineComponent( {
   name: "list",
   props: {
-    noResolve: Object,
-    newWaf: Object,
+    info: [],
   },
 })
 </script>
