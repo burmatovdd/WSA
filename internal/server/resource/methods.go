@@ -72,9 +72,41 @@ func (service *PgService) GetStat(c *gin.Context) {
 		chart = append(chart, Month{Month: t.Month().String(), Chart: Chart{AllServers: p.AllServers.String, ErServers: p.ErServers.String, WithWAF: p.WithWAF.String}})
 	}
 
+	data := struct {
+		Month []Month `json:"statsByMonth"`
+	}{
+		Month: chart,
+	}
+
+	rows, err = helpers.Select("select count(*) from url where wafbool = true;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	stats := WAFStats{}
+	for rows.Next() {
+		if err = rows.Scan(&stats.WithWAF); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	rows, err = helpers.Select("select count(*) from url where wafbool = false;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	for rows.Next() {
+		if err = rows.Scan(&stats.NoWAF); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"body": string(toJson(chart)),
+		"code":     http.StatusOK,
+		"body":     string(toJson(data)),
+		"statsWAF": string(toJson(stats)),
 	})
 }
 
@@ -406,7 +438,7 @@ func (service *PgService) GetCertificates(c *gin.Context) {
 
 func (service *PgService) UserIdentity(c *gin.Context) {
 	header := c.GetHeader("Authorization")
-	fmt.Println("сука хедер", header)
+	fmt.Println("header: ", header)
 	if header == "" {
 		fmt.Println("empty auth header")
 		c.JSON(http.StatusUnauthorized, gin.H{

@@ -223,3 +223,8 @@ type Chart struct {
 	ErServers  string `json:"erServers"`
 	WithWAF    string `json:"withWAF"`
 }
+
+type WAFStats struct {
+	WithWAF int `json:"withWAF"`
+	NoWAF   int `json:"noWAF"`
+}

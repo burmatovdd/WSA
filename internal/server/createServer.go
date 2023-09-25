@@ -21,7 +21,7 @@ func (service *Service) CreateServer() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE"},
-		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers, Authorization"},
+		AllowHeaders: []string{"Content-Type, access-control-allow-origin, access-control-allow-headers, Authorization"},
 	}))
 
 	//api := router.Group("/api", method.UserIdentity)
@@ -32,11 +32,12 @@ func (service *Service) CreateServer() {
 	router.GET("/api/certificates", method.GetCertificates)
 	router.GET("/api/statistic", method.GetStatistic)
 
-	router.POST("/login", method.Login)
 	router.POST("/api/add-resource", method.AddResource)
 	router.POST("/api/check-resource", method.CheckResource)
 	router.POST("/api/delete-resource", method.DeleteResource)
 	router.POST("/api/update-resource", method.UpdateResource)
+
+	router.POST("/login", method.Login)
 
 	err := router.Run(":8080")
 	if err != nil {

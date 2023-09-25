@@ -16,4 +16,5 @@ type Service interface {
 	UpdateResource(c *gin.Context)
 	GetGeneralStat(c *gin.Context)
 	GetCertificates(c *gin.Context)
+	UserIdentity(c *gin.Context)
 }
