@@ -36,6 +36,9 @@ export default defineComponent({
     Block,
     Card,
     Chart,
+  },
+  mounted() {
+
   }
 })
 </script>

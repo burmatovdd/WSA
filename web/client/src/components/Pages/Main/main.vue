@@ -67,6 +67,9 @@ export default defineComponent({
       this.$data.openedModalDialog = false;
     }
   },
+  mounted() {
+
+  }
 })
 </script>
 

@@ -4,12 +4,12 @@ import router from "./router.js";
 import * as storage from "./storage.js";
 
 export default defineComponent({
-  mounted() {
-    let token = storage.get("token");
-    if (token == null){
-      router.push("/");
-    }
+mounted() {
+  let token = storage.get("token");
+  if (token == null){
+    router.push("/");
   }
+}
 })
 </script>
 

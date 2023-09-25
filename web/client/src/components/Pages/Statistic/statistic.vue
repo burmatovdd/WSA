@@ -64,6 +64,7 @@ export default defineComponent( {
     }
   },
   mounted() {
+
     let sendUrl = "http://localhost:8080/api/statistic";
 
     httpClient.Get(sendUrl).then(response => {

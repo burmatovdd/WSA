@@ -10,7 +10,9 @@ function postRequest(method,url,data){
 }
 
 function getRequest(method, url){
-    return axios.get(url)
+    return axios.get(url,{headers:{
+            Authorization: storage.getToken()
+        }})
 }
 
 export function Post(url,sendData){
