@@ -34,7 +34,7 @@ func (service *PgService) Login(c *gin.Context) {
 
 	token, _ := generateToken(data.Login, string(hashPassword(data.Password)), access)
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusOK, map[string]interface{}{
 		"code":  http.StatusOK,
 		"token": token,
 	})
@@ -72,12 +72,6 @@ func (service *PgService) GetStat(c *gin.Context) {
 		chart = append(chart, Month{Month: t.Month().String(), Chart: Chart{AllServers: p.AllServers.String, ErServers: p.ErServers.String, WithWAF: p.WithWAF.String}})
 	}
 
-	data := struct {
-		Month []Month `json:"statsByMonth"`
-	}{
-		Month: chart,
-	}
-
 	rows, err = helpers.Select("select count(*) from url where wafbool = true;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 
@@ -103,10 +97,17 @@ func (service *PgService) GetStat(c *gin.Context) {
 		}
 	}
 
+	data := struct {
+		Month []Month  `json:"month"`
+		Stats WAFStats `json:"wafStat"`
+	}{
+		Month: chart,
+		Stats: stats,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"code":     http.StatusOK,
-		"body":     string(toJson(data)),
-		"statsWAF": string(toJson(stats)),
+		"code": http.StatusOK,
+		"body": string(toJson(data)),
 	})
 }
 
@@ -448,7 +449,8 @@ func (service *PgService) UserIdentity(c *gin.Context) {
 	}
 
 	headerParts := strings.Split(header, " ")
-	if len(headerParts) != 2 {
+	fmt.Println(len(headerParts))
+	if len(headerParts) != 1 {
 		fmt.Println("invalid auth string")
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"code": http.StatusUnauthorized,
@@ -456,7 +458,8 @@ func (service *PgService) UserIdentity(c *gin.Context) {
 		return
 	}
 
-	userLogin, err := parseToken(headerParts[1])
+	fmt.Println(headerParts)
+	userLogin, err := parseToken(headerParts[0])
 	if err != nil {
 		fmt.Println("invalid auth string")
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -598,5 +601,13 @@ func (service *PgService) GetStatistic(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"body": string(toJson(stats)),
+	})
+}
+
+func (service *PgService) TestToken(c *gin.Context) {
+	login, _ := c.Get("userLogin")
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"body": login,
 	})
 }

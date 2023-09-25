@@ -24,19 +24,20 @@ func (service *Service) CreateServer() {
 		AllowHeaders: []string{"Content-Type, access-control-allow-origin, access-control-allow-headers, Authorization"},
 	}))
 
-	//api := router.Group("/api", method.UserIdentity)
+	api := router.Group("/api", method.UserIdentity)
+	{
+		api.GET("/chart-statistic", method.GetStat)
+		api.GET("/week-statistic", method.GetWeekStat)
+		api.GET("/general-statistic", method.GetGeneralStat)
+		api.GET("/certificates", method.GetCertificates)
+		api.GET("/statistic", method.GetStatistic)
 
-	router.GET("/api/chart-statistic", method.GetStat)
-	router.GET("/api/week-statistic", method.GetWeekStat)
-	router.GET("/api/general-statistic", method.GetGeneralStat)
-	router.GET("/api/certificates", method.GetCertificates)
-	router.GET("/api/statistic", method.GetStatistic)
-
-	router.POST("/api/add-resource", method.AddResource)
-	router.POST("/api/check-resource", method.CheckResource)
-	router.POST("/api/delete-resource", method.DeleteResource)
-	router.POST("/api/update-resource", method.UpdateResource)
-
+		api.POST("/test", method.TestToken)
+		api.POST("/add-resource", method.AddResource)
+		api.POST("/check-resource", method.CheckResource)
+		api.POST("/delete-resource", method.DeleteResource)
+		api.POST("/update-resource", method.UpdateResource)
+	}
 	router.POST("/login", method.Login)
 
 	err := router.Run(":8080")

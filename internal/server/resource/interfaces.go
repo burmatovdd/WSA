@@ -17,4 +17,5 @@ type Service interface {
 	GetGeneralStat(c *gin.Context)
 	GetCertificates(c *gin.Context)
 	UserIdentity(c *gin.Context)
+	TestToken(c *gin.Context)
 }

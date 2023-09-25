@@ -62,9 +62,6 @@ func getUserAccessInDB(query string, args []any) bool {
 	for rows.Next() {
 		p := UserAuth{}
 		err = rows.Scan(
-			&p.ID,
-			&p.Email,
-			&p.Password,
 			&p.Access,
 		)
 
@@ -73,10 +70,7 @@ func getUserAccessInDB(query string, args []any) bool {
 			return false
 		}
 		us = UserAuth{
-			p.ID,
-			p.Email,
-			p.Password,
-			p.Access,
+			Access: p.Access,
 		}
 	}
 
@@ -469,7 +463,6 @@ func parseToken(accessToken string) (string, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
-
 		return []byte(signingKey), nil
 	})
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 )
 
 type Login struct {
-	Login    string `json:"login"`
+	Login    string `json:"login" db:"emailus"`
 	Password string `json:"password"`
 }
 
