@@ -16,7 +16,8 @@
         <template v-if="!this.$data.resourceInfo.found">Ресурс не найден</template>
         <template v-else>Общая информация</template>
       </h4>
-      <Adder v-if="!this.$data.resourceInfo.found" :resource="this.$data.resourceInfo.resName"/>
+<!--      <Adder v-if="!this.$data.resourceInfo.found" :resource="this.$data.resourceInfo.resName"/>-->
+      <p v-if="!this.$data.resourceInfo.found" class="card__error">Извините, данного ресурса нет в нашей базе данных</p>
       <ResourceInfo v-else :resource="this.$data.resourceInfo"/>
     </Card>
   </DialogComp>
