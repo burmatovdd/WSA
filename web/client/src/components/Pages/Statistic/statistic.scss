@@ -1,0 +1,28 @@
+.main{
+  &__statistic{
+    display: flex;
+    .tile{
+      min-width: 37.5rem;
+    }
+  }
+}
+.statistic{
+  &__block{
+    &--resource{
+      margin-right: 2rem;
+    }
+  }
+}
+
+.data{
+  max-width: 27.6rem;
+  width: 100%;
+  max-height: 15.5rem;
+  &__left{
+    margin-right: 1.5rem;
+  }
+  &__list{
+    overflow-y: scroll;
+    max-height: 13.5rem;
+  }
+}

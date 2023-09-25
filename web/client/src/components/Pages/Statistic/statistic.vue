@@ -4,12 +4,22 @@
   </header>
   <div class="main__container">
     <div class="main__statistic">
-      <Block>
+      <Block class="statistic__block statistic__block--resource">
         <Card>
           <div class="reports__content card__content">
             <div class="content__title">Ресурсы</div>
             <div class="content__data reports__content-data">
-              <List :all-resources="this.allUrl"/>
+              <List :info1="this.all" :info2="this.error"/>
+            </div>
+          </div>
+        </Card>
+      </Block>
+      <Block>
+        <Card>
+          <div class="reports__content card__content">
+            <div class="content__title">Защищенные ресурсы</div>
+            <div class="content__data reports__content-data">
+              <List :info1="this.waf" :info2="this.kdp"/>
             </div>
           </div>
         </Card>
@@ -35,9 +45,22 @@ export default defineComponent( {
   },
   data: function (){
     return{
-      allUrl: [],
-      errUrl: [],
-      wafUrl: [],
+      all: {
+        title: 'Все ресурсы',
+        array: []
+      },
+      error: {
+        title: 'Неактивные',
+        array: []
+      },
+      waf: {
+        title: 'За WAF',
+        array: []
+      },
+      kdp: {
+        title: 'За КДП',
+        array: [],
+      }
     }
   },
   mounted() {
@@ -46,9 +69,9 @@ export default defineComponent( {
     httpClient.Get(sendUrl).then(response => {
       let resp = JSON.parse(response.data.body)
       console.info(resp)
-      this.allUrl = resp.allURL
-      this.errUrl = resp.errURL
-      this.wafUrl = resp.wafURL
+      this.all.array = resp.allURL
+      this.error.array = resp.errURL
+      this.waf.array = resp.wafURL
     })
   }
 })
