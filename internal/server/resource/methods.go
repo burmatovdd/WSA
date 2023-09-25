@@ -42,7 +42,8 @@ func (service *PgService) Login(c *gin.Context) {
 }
 
 func (service *PgService) GetStat(c *gin.Context) {
-	rows, err := helpers.Select("select allservers, erservers, withwaf from stat", nil, serverConf.DefaultConfig)
+	//FIXME: inaccurate sql-query that returns the maximum values for the month and not the last row
+	rows, err := helpers.Select("SELECT DATE_TRUNC('month',datestat) AS  tbl, MAX(allservers) as allservers, MAX(erservers) as erservers, MAX(withwaf) as withwaf FROM stat GROUP BY DATE_TRUNC('month',datestat);", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 
 	if err != nil {
@@ -52,42 +53,28 @@ func (service *PgService) GetStat(c *gin.Context) {
 		return
 	}
 
-	req := RequestStatistic{}
+	chart := []Month{}
 
 	for rows.Next() {
-		p := ResponseStatistic{}
+		p := SQLChart{}
 		err := rows.Scan(
-			&p.ID,
 			&p.Date,
 			&p.AllServers,
-			&p.ErrorServers,
-			&p.WorkServers,
-			&p.WithWaf,
-			&p.Possible,
-			&p.WafProcPossible,
-			&p.WafProc,
-			&p.WithKas,
-			&p.WafAndKas,
-			&p.WafAndKasProc,
-			&p.AllCertificate,
-			&p.OkCertificate)
+			&p.ErServers,
+			&p.WithWAF,
+		)
 
 		if err != nil {
 			continue
 		}
-		req = RequestStatistic{
-			p.AllServers,
-			p.ErrorServers,
-			p.WorkServers,
-			p.WithWaf,
-			p.AllCertificate,
-			p.OkCertificate,
-		}
+
+		t, _ := time.Parse(time.RFC3339, p.Date.String)
+		chart = append(chart, Month{Month: t.Month().String(), Chart: Chart{AllServers: p.AllServers.String, ErServers: p.ErServers.String, WithWAF: p.WithWAF.String}})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": string(toJson(req)),
+		"body": string(toJson(chart)),
 	})
 }
 

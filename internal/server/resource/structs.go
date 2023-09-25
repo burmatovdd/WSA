@@ -205,3 +205,21 @@ type AllStats struct {
 type Resource struct {
 	Resource string `json:"resource"`
 }
+
+type SQLChart struct {
+	Date       sql.NullString `json:"date"`
+	AllServers sql.NullString `json:"allServers"`
+	ErServers  sql.NullString `json:"erServers"`
+	WithWAF    sql.NullString `json:"withWAF"`
+}
+
+type Month struct {
+	Month string `json:"month"`
+	Chart Chart  `json:"chart"`
+}
+
+type Chart struct {
+	AllServers string `json:"allServers"`
+	ErServers  string `json:"erServers"`
+	WithWAF    string `json:"withWAF"`
+}
