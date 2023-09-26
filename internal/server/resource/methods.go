@@ -30,9 +30,11 @@ func (service *PgService) Login(c *gin.Context) {
 		return
 	}
 
+	fio := getFioInDB("select fio from usdata where emailus = $1;", []any{data.Login})
+
 	access = getUserAccessInDB("select accessus from users where emailus = $1 and passwordus = $2;", []any{data.Login, data.Password})
 
-	token, _ := generateToken(data.Login, string(hashPassword(data.Password)), access)
+	token, _ := generateToken(data.Login, string(hashPassword(data.Password)), fio, access)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
@@ -475,7 +477,7 @@ func (service *PgService) UserIdentity(c *gin.Context) {
 		return
 	}
 
-	userLogin, err := parseToken(headerParts[0])
+	userFIO, err := parseToken(headerParts[0])
 	if err != nil {
 		fmt.Println("invalid auth string")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -484,7 +486,7 @@ func (service *PgService) UserIdentity(c *gin.Context) {
 		return
 	}
 
-	c.Set("userLogin", userLogin)
+	c.Set("userFIO", userFIO)
 }
 
 func (service *PgService) GetStatistic(c *gin.Context) {
@@ -536,10 +538,17 @@ func (service *PgService) GetStatistic(c *gin.Context) {
 	})
 }
 
-func (service *PgService) TestToken(c *gin.Context) {
-	login, _ := c.Get("userLogin")
+func (service *PgService) GetUserInfo(c *gin.Context) {
+	fio, _ := c.Get("userFIO")
+
+	data := struct {
+		FIO any `json:"userFIO"`
+	}{
+		FIO: fio,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": login,
+		"body": string(toJson(data)),
 	})
 }

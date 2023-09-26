@@ -15,6 +15,7 @@ type TokenClaims struct {
 	jwt.StandardClaims
 	Login    string `json:"login"`
 	Password string `json:"password"`
+	FIO      string `json:"fio"`
 	Access   bool   `json:"access"`
 }
 
@@ -29,6 +30,10 @@ type User struct {
 	ID    sql.NullInt32  `json:"id"`
 	Email sql.NullString `json:"email"`
 	FIO   sql.NullString `json:"FIO"`
+}
+
+type UserData struct {
+	FIO string `json:"fio"`
 }
 
 type RequestStatistic struct {

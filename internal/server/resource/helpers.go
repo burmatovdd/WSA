@@ -75,6 +75,31 @@ func getUserAccessInDB(query string, args []any) bool {
 	return us.Access
 }
 
+func getFioInDB(query string, args []any) string {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	us := UserData{}
+
+	for rows.Next() {
+		p := UserData{}
+		err = rows.Scan(
+			&p.FIO,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			return ""
+		}
+		us = UserData{
+			FIO: p.FIO,
+		}
+	}
+
+	return us.FIO
+
+}
+
 func checkResourceInDB(args []any) bool {
 	rows, err := helpers.Select("select * from resource where nameurl = $1", args, serverConf.DefaultConfig)
 	defer rows.Close()
@@ -443,14 +468,14 @@ func hashPassword(password string) []byte {
 	return hash
 }
 
-func generateToken(login string, password string, access bool) (string, error) {
+func generateToken(login string, password string, fio string, access bool) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(12 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
-		login, password, access,
+		login, password, fio, access,
 	})
 
 	return token.SignedString([]byte(os.Getenv("signingKey")))
@@ -472,7 +497,7 @@ func parseToken(accessToken string) (string, error) {
 		return "", errors.New("token claims are not of type *tokenClaims")
 	}
 
-	return claims.Login, nil
+	return claims.FIO, nil
 }
 
 func validateURL(url string) bool {

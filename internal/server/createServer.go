@@ -31,8 +31,8 @@ func (service *Service) CreateServer() {
 		api.GET("/general-statistic", method.GetGeneralStat)
 		api.GET("/certificates", method.GetCertificates)
 		api.GET("/statistic", method.GetStatistic)
+		api.GET("/user-info", method.GetUserInfo)
 
-		api.POST("/test", method.TestToken)
 		api.POST("/add-resource", method.AddResource)
 		api.POST("/check-resource", method.CheckResource)
 		api.POST("/delete-resource", method.DeleteResource)
