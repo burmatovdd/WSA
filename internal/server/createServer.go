@@ -26,7 +26,7 @@ func (service *Service) CreateServer() {
 
 	api := router.Group("/api", method.UserIdentity)
 	{
-		api.GET("/chart-statistic", method.GetStat)
+		api.GET("/chart-statistic", method.GetShortStat)
 		api.GET("/week-statistic", method.GetWeekStat)
 		api.GET("/general-statistic", method.GetGeneralStat)
 		api.GET("/certificates", method.GetCertificates)

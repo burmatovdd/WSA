@@ -41,7 +41,7 @@ func (service *PgService) Login(c *gin.Context) {
 
 }
 
-func (service *PgService) GetStat(c *gin.Context) {
+func (service *PgService) GetShortStat(c *gin.Context) {
 	//FIXME: inaccurate sql-query that returns the maximum values for the month and not the last row
 	rows, err := helpers.Select("SELECT DATE_TRUNC('month',datestat) AS  tbl, MAX(allservers) as allservers, MAX(erservers) as erservers, MAX(withwaf) as withwaf FROM stat GROUP BY DATE_TRUNC('month',datestat);", nil, serverConf.DefaultConfig)
 	defer rows.Close()
@@ -152,7 +152,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 
 	collection := collectInfo(data.Url)
 	res := helpers.Exec(
-		"INSERT INTO url (nameurl,ip,err,waf,idusd,idowner,commonname,issuer,datecert, errbool, wafbool, certbool) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
+		"INSERT INTO url (nameurl,ip,err,waf,idusd,idowner,commonname,issuer,datecert, errbool, wafbool, certbool, kdpbool) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
 		[]any{
 			collection.Resolve.NameUrl,
 			collection.Resolve.Ip,
@@ -166,6 +166,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 			collection.Resolve.ErrStatus,
 			collection.Resolve.WafStatus,
 			collection.Certificate.CertStatus,
+			checkKDP(collection.Resolve.Ip),
 		},
 		serverConf.DefaultConfig)
 	if !res {
@@ -175,7 +176,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 		return
 	}
 
-	res = helpers.Exec("INSERT INTO resource (nameurl,ipfirst,datefirst,datenores,status,wafdate,wafip) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+	res = helpers.Exec("INSERT INTO resource (nameurl,ipfirst,datefirst,datenores,status,wafdate,wafip, kdpbool) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
 		[]any{
 			data.Url,
 			collection.Resolve.Ip,
@@ -184,6 +185,7 @@ func (service *PgService) AddResource(c *gin.Context) {
 			collection.Resolve.Status,
 			collection.Resolve.WafDate,
 			collection.Resolve.WafIp,
+			checkKDP(collection.Resolve.Ip),
 		},
 		serverConf.DefaultConfig,
 	)
@@ -486,8 +488,6 @@ func (service *PgService) UserIdentity(c *gin.Context) {
 }
 
 func (service *PgService) GetStatistic(c *gin.Context) {
-	var stats AllStats
-
 	rows, err := helpers.Select("select * from url;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 
@@ -498,61 +498,7 @@ func (service *PgService) GetStatistic(c *gin.Context) {
 		return
 	}
 
-	for rows.Next() {
-		p := UrlTable{}
-		err := rows.Scan(
-			&p.ID,
-			&p.URL,
-			&p.IP,
-			&p.Err,
-			&p.Waf,
-			&p.IDUser,
-			&p.IDOwner,
-			&p.CommonName,
-			&p.Issuer,
-			&p.EndDate,
-			&p.ErrBool,
-			&p.WafBool,
-			&p.CertBool)
-		if err != nil {
-			continue
-		}
-
-		stats.AllURL = append(stats.AllURL, Resource{p.URL.String})
-	}
-
-	//rows, err = helpers.Select("select * from owners", nil, serverConf.DefaultConfig)
-	//defer rows.Close()
-	//
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{
-	//		"code": http.StatusInternalServerError,
-	//	})
-	//}
-	//
-	//for rows.Next() {
-	//	p := Owner{}
-	//	err := rows.Scan(
-	//		&p.ID,
-	//		&p.FullName,
-	//		&p.ShortName)
-	//
-	//	if err != nil {
-	//		continue
-	//	}
-	//
-	//	stats.Owners = append(stats.Owners, p.FullName.String)
-	//}
-
-	rows, err = helpers.Select("select * from url where wafbool = true;", nil, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-		return
-	}
+	stats := []AllStats{}
 
 	for rows.Next() {
 		p := UrlTable{}
@@ -569,52 +515,24 @@ func (service *PgService) GetStatistic(c *gin.Context) {
 			&p.EndDate,
 			&p.ErrBool,
 			&p.WafBool,
-			&p.CertBool)
-
+			&p.CertBool,
+			&p.KdpBool)
 		if err != nil {
 			continue
 		}
 
-		stats.WafURL = append(stats.WafURL, Resource{p.URL.String})
+		stats = append(stats, AllStats{Resource{IP: p.IP.String, DNS: p.URL.String, Err: p.ErrBool.Bool, Waf: p.WafBool.Bool, Kdp: p.KdpBool.Bool}})
 	}
 
-	rows, err = helpers.Select("select * from url where errbool = false;", nil, serverConf.DefaultConfig)
-	defer rows.Close()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-		return
-	}
-
-	for rows.Next() {
-		p := UrlTable{}
-		err := rows.Scan(
-			&p.ID,
-			&p.URL,
-			&p.IP,
-			&p.Err,
-			&p.Waf,
-			&p.IDUser,
-			&p.IDOwner,
-			&p.CommonName,
-			&p.Issuer,
-			&p.EndDate,
-			&p.ErrBool,
-			&p.WafBool,
-			&p.CertBool)
-
-		if err != nil {
-			continue
-		}
-
-		stats.ErrURL = append(stats.ErrURL, Resource{p.URL.String})
+	data := struct {
+		Stats []AllStats `json:"stats"`
+	}{
+		Stats: stats,
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"body": string(toJson(stats)),
+		"body": string(toJson(data)),
 	})
 }
 

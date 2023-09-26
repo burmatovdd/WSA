@@ -488,3 +488,19 @@ func validateURL(url string) bool {
 
 	return true
 }
+
+func checkKDP(ip string) bool {
+	if ip == "82.202.189.181" ||
+		ip == "82.202.189.85" ||
+		ip == "82.202.190.59" ||
+		ip == "82.202.190.91" ||
+		ip == "82.202.190.134" ||
+		ip == "82.202.190.145" ||
+		ip == "82.202.190.229" ||
+		ip == "82.202.191.175" ||
+		ip == "82.202.191.197" {
+		return true
+	}
+
+	return false
+}

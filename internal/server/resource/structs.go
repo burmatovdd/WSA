@@ -116,6 +116,7 @@ type UrlTable struct {
 	ErrBool    sql.NullBool
 	WafBool    sql.NullBool
 	CertBool   sql.NullBool
+	KdpBool    sql.NullBool
 }
 
 type Owner struct {
@@ -195,15 +196,15 @@ type AddResourceCollection struct {
 }
 
 type AllStats struct {
-	//GenStats GeneralStat `json:"genStats"`
-	AllURL []Resource `json:"allURL"`
-	//Owners []string `json:"owners"`
-	WafURL []Resource `json:"wafURL"`
-	ErrURL []Resource `json:"errURL"`
+	Resource Resource `json:"resource"`
 }
 
 type Resource struct {
-	Resource string `json:"resource"`
+	IP  string `json:"ip"`
+	DNS string `json:"dns"`
+	Err bool   `json:"err"`
+	Waf bool   `json:"waf"`
+	Kdp bool   `json:"kdp"`
 }
 
 type SQLChart struct {
