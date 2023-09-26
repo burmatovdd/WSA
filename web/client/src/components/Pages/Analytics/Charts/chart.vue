@@ -57,17 +57,17 @@ export default defineComponent({
       },
     }
   },
-  async mounted() {
-    try {
-      await getData().then(response => {
-        this.arr = [response.withWaf, response.noWaf]
-        this.chartData.datasets[0].data = this.arr
-        this.loaded = true
-      })
-    } catch (e) {
-      console.error(e)
-    }
-  }
+  // async mounted() {
+  //   try {
+  //     await getData().then(response => {
+  //       this.arr = [response.withWaf, response.noWaf]
+  //       this.chartData.datasets[0].data = this.arr
+  //       this.loaded = true
+  //     })
+  //   } catch (e) {
+  //     console.error(e)
+  //   }
+  // }
 })
 </script>
 

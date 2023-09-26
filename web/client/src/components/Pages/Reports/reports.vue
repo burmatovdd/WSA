@@ -51,19 +51,19 @@ export default defineComponent({
       currentNewWaf: [],
     }
   },
-  mounted() {
-
-    let sendUrl = "http://localhost:8080/api/week-statistic";
-
-    httpClient.Get(sendUrl).then(response => {
-      let resp = JSON.parse(response.data.body)
-      console.info(resp)
-      this.lastNoRes = resp.last.no_res_resource
-      this.lastNewWaf = resp.last.new_waf_resource
-      this.currentNoRes = resp.current.no_res_resource
-      this.currentNewWaf = resp.current.new_waf_resource
-    })
-  }
+  // mounted() {
+  //
+  //   let sendUrl = "http://localhost:8080/api/week-statistic";
+  //
+  //   httpClient.Get(sendUrl).then(response => {
+  //     let resp = JSON.parse(response.data.body)
+  //     console.info(resp)
+  //     this.lastNoRes = resp.last.no_res_resource
+  //     this.lastNewWaf = resp.last.new_waf_resource
+  //     this.currentNoRes = resp.current.no_res_resource
+  //     this.currentNewWaf = resp.current.new_waf_resource
+  //   })
+  // }
 })
 </script>
 

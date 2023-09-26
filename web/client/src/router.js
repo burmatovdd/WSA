@@ -12,8 +12,8 @@ export default  createRouter({
     routes: [
         { path: '/', component: auth },
         { path: '/dashboard', component: main },
-        { path: '/reports', component: reports },
-        { path: '/analytics', component: analytics },
-        { path: '/statistic', component: statistic },
+        // { path: '/reports', component: reports },
+        // { path: '/analytics', component: analytics },
+        // { path: '/statistic', component: statistic },
     ],
 })

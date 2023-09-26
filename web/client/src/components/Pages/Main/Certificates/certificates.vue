@@ -50,16 +50,16 @@ export default defineComponent({
       num: null,
     }
   },
-  mounted() {
-    let sendUrl = "http://localhost:8080/api/certificates";
-
-    httpClient.Get(sendUrl).then(response => {
-      let resp = JSON.parse(response.data.body)
-      this.$data.current = resp.current
-      this.$data.next = resp.next
-      this.num = resp.current.length + resp.next.length
-    })
-  }
+  // mounted() {
+  //   let sendUrl = "http://localhost:8080/api/certificates";
+  //
+  //   httpClient.Get(sendUrl).then(response => {
+  //     let resp = JSON.parse(response.data.body)
+  //     this.$data.current = resp.current
+  //     this.$data.next = resp.next
+  //     this.num = resp.current.length + resp.next.length
+  //   })
+  // }
 })
 </script>
 

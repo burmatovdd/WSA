@@ -43,16 +43,16 @@ export default defineComponent({
       now,
     }
   },
-  mounted() {
-    let sendUrl = "http://localhost:8080/api/general-statistic"
-    httpClient.Get(sendUrl).then(response => {
-      let resp = JSON.parse(response.data.body)
-      this.resources = resp.resources
-      this.deactivateResource = resp.deactivateResource
-      this.waf = resp.waf
-      this.owners = resp.owners
-    })
-  }
+  // mounted() {
+  //   let sendUrl = "http://localhost:8080/api/general-statistic"
+  //   httpClient.Get(sendUrl).then(response => {
+  //     let resp = JSON.parse(response.data.body)
+  //     this.resources = resp.resources
+  //     this.deactivateResource = resp.deactivateResource
+  //     this.waf = resp.waf
+  //     this.owners = resp.owners
+  //   })
+  // }
 })
 </script>
 

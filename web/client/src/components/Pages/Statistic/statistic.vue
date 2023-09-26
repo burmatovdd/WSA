@@ -63,18 +63,18 @@ export default defineComponent( {
       }
     }
   },
-  mounted() {
-
-    let sendUrl = "http://localhost:8080/api/statistic";
-
-    httpClient.Get(sendUrl).then(response => {
-      let resp = JSON.parse(response.data.body)
-      console.info(resp)
-      this.all.array = resp.allURL
-      this.error.array = resp.errURL
-      this.waf.array = resp.wafURL
-    })
-  }
+  // mounted() {
+  //
+  //   let sendUrl = "http://localhost:8080/api/statistic";
+  //
+  //   httpClient.Get(sendUrl).then(response => {
+  //     let resp = JSON.parse(response.data.body)
+  //     console.info(resp)
+  //     this.all.array = resp.allURL
+  //     this.error.array = resp.errURL
+  //     this.waf.array = resp.wafURL
+  //   })
+  // }
 })
 </script>
 
