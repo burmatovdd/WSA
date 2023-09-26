@@ -13,12 +13,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net"
+	"os"
 	"strconv"
 	"time"
-)
-
-const (
-	signingKey = "qrkjk#4#%35FSFJlja#4353KSFjH"
 )
 
 func checkUserInDB(query string, args []any) bool {
@@ -455,7 +452,7 @@ func generateToken(login string, password string, access bool) (string, error) {
 		login, password, access,
 	})
 
-	return token.SignedString([]byte(signingKey))
+	return token.SignedString([]byte(os.Getenv("signingKey")))
 }
 
 func parseToken(accessToken string) (string, error) {
@@ -463,7 +460,7 @@ func parseToken(accessToken string) (string, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
-		return []byte(signingKey), nil
+		return []byte(os.Getenv("signingKey")), nil
 	})
 	if err != nil {
 		return "", err

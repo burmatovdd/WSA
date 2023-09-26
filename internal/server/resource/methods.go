@@ -34,7 +34,7 @@ func (service *PgService) Login(c *gin.Context) {
 
 	token, _ := generateToken(data.Login, string(hashPassword(data.Password)), access)
 
-	c.JSON(http.StatusOK, map[string]interface{}{
+	c.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"token": token,
 	})
@@ -439,30 +439,27 @@ func (service *PgService) GetCertificates(c *gin.Context) {
 
 func (service *PgService) UserIdentity(c *gin.Context) {
 	header := c.GetHeader("Authorization")
-	fmt.Println("header: ", header)
 	if header == "" {
 		fmt.Println("empty auth header")
-		c.JSON(http.StatusUnauthorized, gin.H{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"code": http.StatusUnauthorized,
 		})
 		return
 	}
 
 	headerParts := strings.Split(header, " ")
-	fmt.Println(len(headerParts))
 	if len(headerParts) != 1 {
 		fmt.Println("invalid auth string")
-		c.JSON(http.StatusUnauthorized, gin.H{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"code": http.StatusUnauthorized,
 		})
 		return
 	}
 
-	fmt.Println(headerParts)
 	userLogin, err := parseToken(headerParts[0])
 	if err != nil {
 		fmt.Println("invalid auth string")
-		c.JSON(http.StatusUnauthorized, gin.H{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"code": http.StatusUnauthorized,
 		})
 		return
