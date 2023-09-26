@@ -134,6 +134,14 @@ func (service *PgService) AddResource(c *gin.Context) {
 		})
 		return
 	}
+
+	if !validateURL(data.Url) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
 	result := checkData(data)
 	if result.Result == false {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -317,6 +325,13 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 		return
 	}
 
+	if !validateURL(data.Url) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
 	user := getUserData("select * from usdata where emailus = $1", []any{data.Email})
 	//if user.ID.Valid == false {
 	//	c.JSON(http.StatusInternalServerError, gin.H{
@@ -439,6 +454,7 @@ func (service *PgService) GetCertificates(c *gin.Context) {
 
 func (service *PgService) UserIdentity(c *gin.Context) {
 	header := c.GetHeader("Authorization")
+	//	fmt.Println("header", header)
 	if header == "" {
 		fmt.Println("empty auth header")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -448,6 +464,7 @@ func (service *PgService) UserIdentity(c *gin.Context) {
 	}
 
 	headerParts := strings.Split(header, " ")
+	//fmt.Println("headerParts", headerParts)
 	if len(headerParts) != 1 {
 		fmt.Println("invalid auth string")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{

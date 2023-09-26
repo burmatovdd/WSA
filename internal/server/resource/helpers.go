@@ -15,6 +15,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -472,4 +473,18 @@ func parseToken(accessToken string) (string, error) {
 	}
 
 	return claims.Login, nil
+}
+
+func validateURL(url string) bool {
+	if strings.Contains(url, "http://") ||
+		strings.Contains(url, "https://") ||
+		strings.Contains(url, "www.") ||
+		strings.Contains(url, "/") ||
+		strings.Contains(url, ":") ||
+		strings.HasPrefix(url, ".") ||
+		!strings.HasSuffix(url, ".ru") {
+		return false
+	}
+
+	return true
 }
