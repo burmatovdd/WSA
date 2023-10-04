@@ -118,12 +118,13 @@ func checkResourceInDB(args []any) bool {
 			&p.DateNoRes,
 			&p.WafDate,
 			&p.WafIp,
+			&p.KdpBool,
 		)
 
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
+
 		res = ResourceTable{
 			p.ID,
 			p.NameURL,
@@ -134,6 +135,7 @@ func checkResourceInDB(args []any) bool {
 			p.DateNoRes,
 			p.WafDate,
 			p.WafIp,
+			p.KdpBool,
 		}
 	}
 	if res.ID.Int32 == 0 {

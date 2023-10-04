@@ -19,11 +19,22 @@ type TokenClaims struct {
 	Access   bool   `json:"access"`
 }
 
+type NewUser struct {
+	User   UserAuth  `json:"user"`
+	UsData NewUsData `json:"us_data"`
+}
+
 type UserAuth struct {
 	ID       int    `json:"id"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Access   bool   `json:"access"`
+}
+
+type NewUsData struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+	FIO   string `json:"FIO"`
 }
 
 type User struct {
@@ -47,7 +58,7 @@ type RequestStatistic struct {
 
 type ResponseStatistic struct {
 	ID              int
-	Date            time.Time
+	Date            string
 	AllServers      int
 	ErrorServers    int
 	WorkServers     int
@@ -105,6 +116,7 @@ type ResourceTable struct {
 	DateNoRes sql.NullTime   `json:"DateNoRes"`
 	WafDate   sql.NullTime   `json:"WafDate"`
 	WafIp     sql.NullString `json:"WafIp"`
+	KdpBool   sql.NullBool   `json:"KdpBool"`
 }
 
 type UrlTable struct {

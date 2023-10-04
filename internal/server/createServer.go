@@ -37,6 +37,7 @@ func (service *Service) CreateServer() {
 		api.POST("/check-resource", method.CheckResource)
 		api.POST("/delete-resource", method.DeleteResource)
 		api.POST("/update-resource", method.UpdateResource)
+		api.POST("/add-user", method.AddUser)
 	}
 	router.POST("/login", method.Login)
 

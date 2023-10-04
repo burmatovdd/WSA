@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -111,6 +112,177 @@ func (service *PgService) GetShortStat(c *gin.Context) {
 		"code": http.StatusOK,
 		"body": string(toJson(data)),
 	})
+}
+
+func (service *PgService) UpdateStatTable(c *gin.Context) {
+	stats := ResponseStatistic{}
+
+	rows, err := helpers.Select("select idstat from stat order by idstat desc limit 1;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	for rows.Next() {
+		if err = rows.Scan(&stats.ID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+	stats.Date = time.Now().Format("2006-01-02")
+
+	rows, err = helpers.Select("select count(*) from url;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&stats.AllServers); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	rows, err = helpers.Select("select count(*) from url where errbool = false;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&stats.ErrorServers); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	stats.WorkServers = stats.AllServers - stats.ErrorServers
+
+	rows, err = helpers.Select("select count(*) from url where wafbool = true;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&stats.WithWaf); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	stats.WafProc = math.Round(float64(float64(stats.WithWaf)/float64(stats.AllServers)*100)*100) / 100
+
+	//TODO: idk what it is!
+	stats.Possible = 50
+
+	//TODO: the same!!!
+	stats.WafProcPossible = 59.54
+
+	rows, err = helpers.Select("select count(*) from url where kdpbool = true;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&stats.WithKas); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	rows, err = helpers.Select("select count(*) from url where kdpbool = true or wafbool = true;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&stats.WafAndKas); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	//TODO: idk
+	stats.WafAndKasProc = 54.51
+
+	rows, err = helpers.Select("select count(*) from url where certbool = true;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&stats.AllCertificate); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	//TODO: idk
+	stats.OkCertificate = 180
+
+	fmt.Println(stats)
+}
+
+func (service *PgService) AddUser(c *gin.Context) {
+	data := struct {
+		NewUser NewUser `json:"new_user"`
+	}{}
+	err := c.BindJSON(&data)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	rows, err := helpers.Select("select count(*) from users;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	for rows.Next() {
+		if err = rows.Scan(&data.NewUser.User.ID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	res := helpers.Exec("insert into users values ($1, $2, $3, $4)",
+		[]any{
+			data.NewUser.User.ID + 1,
+			data.NewUser.User.Email,
+			data.NewUser.User.Password,
+			data.NewUser.User.Access,
+		}, serverConf.DefaultConfig)
+	if !res {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	rows, err = helpers.Select("select count(*) from usdata;", nil, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	for rows.Next() {
+		if err = rows.Scan(&data.NewUser.UsData.ID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+
+	res = helpers.Exec("insert into usdata values ($1, $2, $3)",
+		[]any{
+			data.NewUser.UsData.ID + 1,
+			data.NewUser.UsData.Email,
+			data.NewUser.UsData.FIO,
+		}, serverConf.DefaultConfig)
+	if !res {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+
 }
 
 func (service *PgService) GetWeekStat(c *gin.Context) {
@@ -360,7 +532,7 @@ func (service *PgService) UpdateResource(c *gin.Context) {
 
 func (service *PgService) GetGeneralStat(c *gin.Context) {
 	var stats GeneralStat
-	rows, err := helpers.Select("select count(*) from url;", nil, serverConf.DefaultConfig)
+	rows, err := helpers.Select("select allservers from stat order by idstat desc limit 1;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 	for rows.Next() {
 		if err = rows.Scan(&stats.Resources); err != nil {
@@ -382,7 +554,7 @@ func (service *PgService) GetGeneralStat(c *gin.Context) {
 		}
 	}
 
-	rows, err = helpers.Select("select count(*) from url where wafbool = true;", nil, serverConf.DefaultConfig)
+	rows, err = helpers.Select("select withwaf from stat order by idstat desc limit 1;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 	for rows.Next() {
 		if err = rows.Scan(&stats.Waf); err != nil {
@@ -393,7 +565,7 @@ func (service *PgService) GetGeneralStat(c *gin.Context) {
 		}
 	}
 
-	rows, err = helpers.Select("select count(*) from url where errbool = false;", nil, serverConf.DefaultConfig)
+	rows, err = helpers.Select("select errservers from stat order by idstat desc limit 1;", nil, serverConf.DefaultConfig)
 	defer rows.Close()
 	for rows.Next() {
 		if err = rows.Scan(&stats.DeactivateResource); err != nil {
@@ -441,7 +613,8 @@ func (service *PgService) GetCertificates(c *gin.Context) {
 			&p.EndDate,
 			&p.ErrBool,
 			&p.WafBool,
-			&p.CertBool)
+			&p.CertBool,
+			&p.KdpBool)
 
 		if err != nil {
 			fmt.Println(err)
