@@ -15,6 +15,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -74,6 +75,31 @@ func getUserAccessInDB(query string, args []any) bool {
 	return us.Access
 }
 
+func getFioInDB(query string, args []any) string {
+	rows, err := helpers.Select(query, args, serverConf.DefaultConfig)
+	defer rows.Close()
+
+	us := UserData{}
+
+	for rows.Next() {
+		p := UserData{}
+		err = rows.Scan(
+			&p.FIO,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			return ""
+		}
+		us = UserData{
+			FIO: p.FIO,
+		}
+	}
+
+	return us.FIO
+
+}
+
 func checkResourceInDB(args []any) bool {
 	rows, err := helpers.Select("select * from resource where nameurl = $1", args, serverConf.DefaultConfig)
 	defer rows.Close()
@@ -92,12 +118,13 @@ func checkResourceInDB(args []any) bool {
 			&p.DateNoRes,
 			&p.WafDate,
 			&p.WafIp,
+			&p.KdpBool,
 		)
 
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
+
 		res = ResourceTable{
 			p.ID,
 			p.NameURL,
@@ -108,6 +135,7 @@ func checkResourceInDB(args []any) bool {
 			p.DateNoRes,
 			p.WafDate,
 			p.WafIp,
+			p.KdpBool,
 		}
 	}
 	if res.ID.Int32 == 0 {
@@ -442,14 +470,14 @@ func hashPassword(password string) []byte {
 	return hash
 }
 
-func generateToken(login string, password string, access bool) (string, error) {
+func generateToken(login string, password string, fio string, access bool) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(12 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
-		login, password, access,
+		login, password, fio, access,
 	})
 
 	return token.SignedString([]byte(os.Getenv("signingKey")))
@@ -471,5 +499,35 @@ func parseToken(accessToken string) (string, error) {
 		return "", errors.New("token claims are not of type *tokenClaims")
 	}
 
-	return claims.Login, nil
+	return claims.FIO, nil
+}
+
+func validateURL(url string) bool {
+	if strings.Contains(url, "http://") ||
+		strings.Contains(url, "https://") ||
+		strings.Contains(url, "www.") ||
+		strings.Contains(url, "/") ||
+		strings.Contains(url, ":") ||
+		strings.HasPrefix(url, ".") ||
+		!strings.HasSuffix(url, ".ru") {
+		return false
+	}
+
+	return true
+}
+
+func checkKDP(ip string) bool {
+	if ip == "82.202.189.181" ||
+		ip == "82.202.189.85" ||
+		ip == "82.202.190.59" ||
+		ip == "82.202.190.91" ||
+		ip == "82.202.190.134" ||
+		ip == "82.202.190.145" ||
+		ip == "82.202.190.229" ||
+		ip == "82.202.191.175" ||
+		ip == "82.202.191.197" {
+		return true
+	}
+
+	return false
 }

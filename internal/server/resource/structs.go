@@ -15,7 +15,13 @@ type TokenClaims struct {
 	jwt.StandardClaims
 	Login    string `json:"login"`
 	Password string `json:"password"`
+	FIO      string `json:"fio"`
 	Access   bool   `json:"access"`
+}
+
+type NewUser struct {
+	User   UserAuth  `json:"user"`
+	UsData NewUsData `json:"us_data"`
 }
 
 type UserAuth struct {
@@ -25,10 +31,20 @@ type UserAuth struct {
 	Access   bool   `json:"access"`
 }
 
+type NewUsData struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+	FIO   string `json:"FIO"`
+}
+
 type User struct {
 	ID    sql.NullInt32  `json:"id"`
 	Email sql.NullString `json:"email"`
 	FIO   sql.NullString `json:"FIO"`
+}
+
+type UserData struct {
+	FIO string `json:"fio"`
 }
 
 type RequestStatistic struct {
@@ -42,7 +58,7 @@ type RequestStatistic struct {
 
 type ResponseStatistic struct {
 	ID              int
-	Date            time.Time
+	Date            string
 	AllServers      int
 	ErrorServers    int
 	WorkServers     int
@@ -100,6 +116,7 @@ type ResourceTable struct {
 	DateNoRes sql.NullTime   `json:"DateNoRes"`
 	WafDate   sql.NullTime   `json:"WafDate"`
 	WafIp     sql.NullString `json:"WafIp"`
+	KdpBool   sql.NullBool   `json:"KdpBool"`
 }
 
 type UrlTable struct {
@@ -116,6 +133,7 @@ type UrlTable struct {
 	ErrBool    sql.NullBool
 	WafBool    sql.NullBool
 	CertBool   sql.NullBool
+	KdpBool    sql.NullBool
 }
 
 type Owner struct {
@@ -195,15 +213,15 @@ type AddResourceCollection struct {
 }
 
 type AllStats struct {
-	//GenStats GeneralStat `json:"genStats"`
-	AllURL []Resource `json:"allURL"`
-	//Owners []string `json:"owners"`
-	WafURL []Resource `json:"wafURL"`
-	ErrURL []Resource `json:"errURL"`
+	Resource Resource `json:"resource"`
 }
 
 type Resource struct {
-	Resource string `json:"resource"`
+	IP  string `json:"ip"`
+	DNS string `json:"dns"`
+	Err bool   `json:"err"`
+	Waf bool   `json:"waf"`
+	Kdp bool   `json:"kdp"`
 }
 
 type SQLChart struct {

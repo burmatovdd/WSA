@@ -8,7 +8,7 @@ type PgService struct {
 
 type Service interface {
 	Login(c *gin.Context)
-	GetStat(c *gin.Context)
+	GetShortStat(c *gin.Context)
 	GetWeekStat(c *gin.Context)
 	AddResource(c *gin.Context)
 	CheckResource(c *gin.Context)
@@ -17,5 +17,5 @@ type Service interface {
 	GetGeneralStat(c *gin.Context)
 	GetCertificates(c *gin.Context)
 	UserIdentity(c *gin.Context)
-	TestToken(c *gin.Context)
+	GetUserInfo(c *gin.Context)
 }
