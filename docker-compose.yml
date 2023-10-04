@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+    #    redis:
+    #        image: redis
+    #        container_name: redis
+    #        ports:
+    #            - 6379:6379
+    web:
+        #        build:
+        #            context: .
+        #            dockerfile: client/Dockerfile
+        depends_on:
+            -   back
+        container_name: wsa-client
+        image: wsa-client:0.1.0_amd64
+        ports:
+            - 80:80
+    back:
+        #        build:
+        #            context: .
+        #            dockerfile: Dockerfile
+        depends_on:
+            - postgresDB
+        container_name: wsa-back
+        image: wsa-server:0.1.0_amd64
+        environment:
+            POSTGRESQL_CONNSTRING: "host=postgresDB port=5432 user=postgres password=baranka9K! dbname=WAF_Analytics sslmode=disable"
+        # порты наружу
+    #        ports:
+    #            - 1234:8080
+    postgresDB:
+        image: amd64/postgres:alpine3.18
+        ports:
+            - "5432:5432"
+        container_name: wsa-postgresDB
+        extra_hosts:
+            - host.docker.internal:host-gateway
+        volumes:
+            - .pg_data:/var/lib/postgresql/data
+        command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
+        environment:
+            #todo: поменять пароль тут и в конфиге
+            POSTGRES_PASSWORD: baranka9K!
+            POSTGRES_DB: WAF_Analytics
